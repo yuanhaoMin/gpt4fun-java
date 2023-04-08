@@ -1,0 +1,9 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    api 'com.github.plexpt:chatgpt:4.0.5'
+
+    implementation project(':shared')
+}

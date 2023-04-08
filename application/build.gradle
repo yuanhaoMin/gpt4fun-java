@@ -1,0 +1,12 @@
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation project(':discord')
+}
+
+bootJar {
+    enabled = true
+}
+
+jar {
+    enabled = false
+}
