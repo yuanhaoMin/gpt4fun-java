@@ -1,8 +1,7 @@
 package com.rua.command;
 
-import com.rua.command.api.CommandHandler;
-import com.rua.command.api.CommandRequestBuilder;
-import com.rua.constant.DiscordConstants;
+import com.rua.command.api.DiscordCommandHandler;
+import com.rua.command.api.DiscordCommandRequestBuilder;
 import com.rua.service.DiscordChatService;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
@@ -15,19 +14,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-@Component
-public class SetSystemMessageCommand extends CommandHandler implements CommandRequestBuilder {
+import static com.rua.constant.DiscordConstants.*;
 
-    private static final Logger logger = LoggerFactory.getLogger(SetSystemMessageCommand.class);
+@Component
+public class DiscordCommandSetSystemMessage implements DiscordCommandHandler, DiscordCommandRequestBuilder {
+
+    private static final Logger logger = LoggerFactory.getLogger(DiscordCommandSetSystemMessage.class);
 
     @Override
     public ApplicationCommandRequest build() {
         return ApplicationCommandRequest.builder() //
-                .name(DiscordConstants.SET_SYSTEM_MESSAGE_COMMAND_NAME) //
-                .description(DiscordConstants.SET_SYSTEM_MESSAGE_COMMAND_DESCRIPTION) //
+                .name(COMMAND_SET_SYSTEM_MESSAGE_NAME) //
+                .description(COMMAND_SET_SYSTEM_MESSAGE_DESCRIPTION) //
                 .addOption(ApplicationCommandOptionData.builder() //
-                        .name(DiscordConstants.SET_SYSTEM_MESSAGE_COMMAND_FIRST_OPTION_NAME) //
-                        .description(DiscordConstants.SET_SYSTEM_MESSAGE_COMMAND_FIRST_OPTION_DESCRIPTION) //
+                        .name(COMMAND_SET_SYSTEM_MESSAGE_FIRST_OPTION_NAME) //
+                        .description(COMMAND_SET_SYSTEM_MESSAGE_FIRST_OPTION_DESCRIPTION) //
                         .type(ApplicationCommandOption.Type.STRING.getValue()) //
                         .required(true) //
                         .build()) //
@@ -36,7 +37,7 @@ public class SetSystemMessageCommand extends CommandHandler implements CommandRe
 
     @Override
     public String getCommandName() {
-        return DiscordConstants.SET_SYSTEM_MESSAGE_COMMAND_NAME;
+        return COMMAND_SET_SYSTEM_MESSAGE_NAME;
     }
 
     @Override
@@ -47,13 +48,13 @@ public class SetSystemMessageCommand extends CommandHandler implements CommandRe
             return Mono.empty();
         }
         final var systemMessageContent = optInteraction.get() //
-                .getOption(DiscordConstants.SET_SYSTEM_MESSAGE_COMMAND_FIRST_OPTION_NAME) //
+                .getOption(COMMAND_SET_SYSTEM_MESSAGE_FIRST_OPTION_NAME) //
                 .flatMap(ApplicationCommandInteractionOption::getValue) //
                 .map(ApplicationCommandInteractionOptionValue::asString) //
                 .orElse("");
-        discordChatService.updateSystemMessage(guildId, systemMessageContent);
-        logger.info("Discord -- System message updated in guild: {}", guildId);
-        return event.reply(String.format(DiscordConstants.SET_SYSTEM_MESSAGE_COMMAND_SUCCESS, systemMessageContent));
+        discordChatService.updateSystemMessageAndPersist(guildId, systemMessageContent);
+        logger.info(LOG_PREFIX_DISCORD + "System message updated in guild: {}", guildId);
+        return event.reply(String.format(COMMAND_SET_SYSTEM_MESSAGE_SUCCESS, systemMessageContent));
     }
 
 }

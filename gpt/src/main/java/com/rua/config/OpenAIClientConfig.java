@@ -12,7 +12,7 @@ import org.springframework.context.annotation.PropertySource;
 @EnableConfigurationProperties(OpenAIProperties.class)
 @PropertySource("classpath:openai.properties")
 @RequiredArgsConstructor
-public class GPTClientConfig {
+public class OpenAIClientConfig {
 
     private final OpenAIProperties openAIProperties;
 

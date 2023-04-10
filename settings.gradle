@@ -1,8 +1,8 @@
 rootProject.name = 'gpt4fun'
 
+include 'application'
+include 'chamber'
 include 'discord'
 include 'gpt'
 include 'persistence'
-include 'application'
 include 'shared'
-

@@ -1,6 +1,6 @@
 package com.rua.logic;
 
-import com.rua.logic.api.EventHandler;
+import com.rua.logic.api.DiscordEventHandler;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.Event;
 import jakarta.annotation.PostConstruct;
@@ -11,19 +11,19 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class PostConstructGateWayDiscordClient<T extends Event> {
+public class DiscordPostConstructGateWayClient<T extends Event> {
 
-    private final CommandRegistrar commandRegistrar;
+    private final DiscordCommandRegistrar discordCommandRegistrar;
 
-    private final List<EventHandler<T>> eventHandlers;
+    private final List<DiscordEventHandler<T>> discordEventHandlers;
 
     private final GatewayDiscordClient gatewayDiscordClient;
 
     @PostConstruct
     public void init() {
         // Collect and register all commands
-        commandRegistrar.register(gatewayDiscordClient);
-        for (EventHandler<T> handler : eventHandlers) {
+        discordCommandRegistrar.register(gatewayDiscordClient);
+        for (DiscordEventHandler<T> handler : discordEventHandlers) {
             gatewayDiscordClient.getEventDispatcher() //
                     .on(handler.getEventType()) //
                     .flatMap(handler::execute) //

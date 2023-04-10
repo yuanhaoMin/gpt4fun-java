@@ -2,7 +2,10 @@ package com.rua.util;
 
 import java.text.DecimalFormat;
 
-public class FormatUtils {
+public class SharedFormatUtils {
+
+    private SharedFormatUtils() {
+    }
 
     public static String convertMillisToStringWithMaxTwoFractionDigits(long number) {
         double decimal = number / 1000.0;

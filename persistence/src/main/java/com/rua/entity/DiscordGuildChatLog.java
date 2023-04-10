@@ -11,11 +11,11 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "guild_chat_logs")
+@Table(name = "guild_chat_log")
 public class DiscordGuildChatLog {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "guild_id", unique = true)

@@ -4,34 +4,45 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.plexpt.chatgpt.entity.chat.ChatCompletionResponse;
 import com.plexpt.chatgpt.entity.chat.Message;
-import com.rua.constant.DiscordConstants;
 import com.rua.entity.DiscordGuildChatLog;
-import com.rua.model.DiscordCompleteChatRequestBo;
+import com.rua.model.DiscordCompleteChatRequest;
+import com.rua.model.GPTCompleteChatRequest;
+import com.rua.property.DiscordProperties;
 import com.rua.repository.DiscordGuildChatLogRepository;
-import lombok.Data;
+import com.rua.util.SharedGPT35Logic;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Data
+import static com.rua.constant.DiscordConstants.RESPONSE_EXCEED_MAX_PROMPT_TOKENS;
+import static com.rua.constant.DiscordConstants.RESPONSE_EXCEED_MAX_RESPONSE_TOKENS;
+
 @RequiredArgsConstructor
 @Service
 public class DiscordChatService {
 
-    private final ChatService chatService;
+    private final GPTChatService gptChatService;
 
     private final DiscordGuildChatLogRepository discordGuildChatLogRepository;
 
-    public String completeChat(final DiscordCompleteChatRequestBo request, final String userMessageContent) {
+    private final DiscordProperties discordProperties;
+
+    private final SharedGPT35Logic sharedGPT35Logic;
+
+    public String gpt35completeChat(final DiscordCompleteChatRequest discordCompleteChatRequest) {
         final var gson = new Gson();
-        var guildChatLog = discordGuildChatLogRepository.findByGuildId(request.getGuildId());
+        var guildChatLog = discordGuildChatLogRepository.findByGuildId(discordCompleteChatRequest.guildId());
         final List<Message> historyMessages = retrieveHistoryMessages(gson, guildChatLog);
-        historyMessages.add(Message.of(userMessageContent));
-        request.setMessages(historyMessages);
-        final var response = chatService.completeChat(request);
-        return updateChatLogAndSendCreateResponse(gson, guildChatLog, historyMessages, request, response);
+        historyMessages.add(Message.of(discordCompleteChatRequest.userMessage()));
+        final var request = GPTCompleteChatRequest.builder() //
+                .messages(historyMessages) //
+                .maxCompletionTokens(discordProperties.maxCompletionTokens()) //
+                .build();
+        final var response = gptChatService.gpt35CompleteChat(request);
+        return updateChatLogAndCreateResponse(gson, guildChatLog, historyMessages, discordCompleteChatRequest,
+                response);
     }
 
     public void resetChatHistory(final String guildId) {
@@ -42,21 +53,11 @@ public class DiscordChatService {
         }
     }
 
-    // TODO: Unit Test
-    public void updateSystemMessage(final String guildId, final String systemMessageContent) {
+    public void updateSystemMessageAndPersist(final String guildId, final String systemMessageContent) {
         final var gson = new Gson();
         var guildChatLog = discordGuildChatLogRepository.findByGuildId(guildId);
         final var historyMessages = retrieveHistoryMessages(gson, guildChatLog);
-        // Get the last system message, or an empty message if there are none
-        final var lastSystemMessage = historyMessages.stream() //
-                .filter(m -> m.getRole().equals(Message.Role.SYSTEM.getValue())) //
-                .findFirst() //
-                .orElse(Message.ofSystem(""));
-        // Check if the new system message is different from the last one
-        if (!systemMessageContent.equals(lastSystemMessage.getContent())) {
-            historyMessages.remove(lastSystemMessage);
-            historyMessages.add(0, Message.ofSystem(systemMessageContent));
-        }
+        sharedGPT35Logic.updateSystemMessage(historyMessages, systemMessageContent);
         if (guildChatLog == null) {
             guildChatLog = new DiscordGuildChatLog();
             guildChatLog.setGuildId(guildId);
@@ -74,68 +75,45 @@ public class DiscordChatService {
         return historyMessages != null ? historyMessages : new ArrayList<>();
     }
 
-    private String updateChatLogAndSendCreateResponse(final Gson gson, DiscordGuildChatLog guildChatLog,
-                                                      final List<Message> historyMessages,
-                                                      final DiscordCompleteChatRequestBo request,
-                                                      final ChatCompletionResponse response) {
+    private String updateChatLogAndCreateResponse(final Gson gson, DiscordGuildChatLog guildChatLog,
+                                                  final List<Message> historyMessages,
+                                                  final DiscordCompleteChatRequest request,
+                                                  final ChatCompletionResponse response) {
         final var botResponseContent = new StringBuilder();
         // Update chat history
         final var gptResponseContent = response.getChoices().get(0).getMessage().getContent();
         historyMessages.add(new Message(Message.Role.ASSISTANT.getValue(), gptResponseContent));
         // The conversion between Chinese characters and Token is greater than 1, subtract 3 when comparing
-        if (response.getUsage().getCompletionTokens() >= request.getMaxCompletionTokens() - 3) {
+        if (response.getUsage().getCompletionTokens() >= discordProperties.maxCompletionTokens() - 3) {
             botResponseContent.append(
-                            String.format(DiscordConstants.EXCEED_MAX_RESPONSE_TOKENS, request.getMaxCompletionTokens())) //
+                            String.format(RESPONSE_EXCEED_MAX_RESPONSE_TOKENS, discordProperties.maxCompletionTokens())) //
                     .append('\n');
         }
-        // Current total tokens + next time user message tokens = next time prompt tokens
-        purgeHistoryMessages(response.getUsage().getTotalTokens(), historyMessages, request.getMaxPromptTokens(),
-                botResponseContent);
-        botResponseContent.append("ChatGPT answers ").append(request.getUserName()).append(":\n");
+        // Next time prompt tokens = current total tokens + next time user message tokens
+        final var nextPromptTokens = response.getUsage().getTotalTokens();
+        final var maxPromptTokens = discordProperties.maxPromptTokens();
+        if (nextPromptTokens >= maxPromptTokens) {
+            final var purgedPromptTokens = sharedGPT35Logic.limitPromptTokensByPurgingHistoryMessages(nextPromptTokens,
+                    maxPromptTokens, historyMessages);
+            botResponseContent.append(String.format(RESPONSE_EXCEED_MAX_PROMPT_TOKENS, //
+                            nextPromptTokens, //
+                            maxPromptTokens, //
+                            purgedPromptTokens, //
+                            maxPromptTokens)) //
+                    .append('\n');
+        }
+        botResponseContent.append("ChatGPT answers ").append(request.userName()).append(":\n");
         // Save guild chat log
         if (guildChatLog == null) {
             guildChatLog = new DiscordGuildChatLog();
         }
-        guildChatLog.setGuildId(request.getGuildId());
+        guildChatLog.setGuildId(request.guildId());
         guildChatLog.setMessages(gson.toJson(historyMessages));
-        guildChatLog.setLastChatTime(request.getLastChatTime());
-        guildChatLog.setLastChatUserName(request.getUserName());
+        guildChatLog.setLastChatTime(request.lastChatTime());
+        guildChatLog.setLastChatUserName(request.userName());
         discordGuildChatLogRepository.save(guildChatLog);
         botResponseContent.append(gptResponseContent);
         return botResponseContent.toString();
-    }
-
-    private void purgeHistoryMessages(long currentPromptTokens, List<Message> historyMessages, int maxPromptTokens,
-                                      StringBuilder botResponseContent) {
-        final var initialPromptCharacters = sumHistoryMessagesLengths(historyMessages);
-        final var initialPromptTokens = currentPromptTokens;
-        while (currentPromptTokens >= maxPromptTokens) {
-            // Remove the earliest user message in history
-            historyMessages.stream() //
-                    .filter(message -> message.getRole().equals(Message.Role.USER.getValue())).findFirst().ifPresent(
-                            historyMessages::remove);
-            // Remove the earliest assistant message in history
-            historyMessages.stream() //
-                    .filter(message -> message.getRole().equals(
-                            Message.Role.ASSISTANT.getValue())).findFirst().ifPresent(historyMessages::remove);
-            // Estimate current prompt tokens
-            final var conversionRatio = (double) initialPromptTokens / initialPromptCharacters;
-            currentPromptTokens = (long) (sumHistoryMessagesLengths(historyMessages) * conversionRatio);
-            if (currentPromptTokens < maxPromptTokens) {
-                botResponseContent.append(String.format(DiscordConstants.EXCEED_MAX_PROMPT_TOKENS, //
-                                initialPromptTokens, //
-                                maxPromptTokens, //
-                                currentPromptTokens, //
-                                maxPromptTokens)) //
-                        .append('\n');
-            }
-        }
-    }
-
-    private int sumHistoryMessagesLengths(final List<Message> historyMessages) {
-        return historyMessages.stream() //
-                .mapToInt(message -> message.getContent().length()) //
-                .sum();
     }
 
 }

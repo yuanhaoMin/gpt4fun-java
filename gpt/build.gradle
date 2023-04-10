@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api 'com.github.plexpt:chatgpt:4.0.5'
+    api 'com.github.plexpt:chatgpt:4.0.6'
 
     implementation project(':shared')
 }

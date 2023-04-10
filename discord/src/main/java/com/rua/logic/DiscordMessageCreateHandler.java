@@ -1,10 +1,10 @@
 package com.rua.logic;
 
-import com.rua.logic.api.EventHandler;
-import com.rua.model.DiscordCompleteChatRequestBo;
+import com.rua.logic.api.DiscordEventHandler;
+import com.rua.model.DiscordCompleteChatRequest;
 import com.rua.property.DiscordProperties;
 import com.rua.service.DiscordChatService;
-import com.rua.util.FormatUtils;
+import com.rua.util.SharedFormatUtils;
 import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.User;
@@ -18,11 +18,13 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+import static com.rua.constant.DiscordConstants.LOG_PREFIX_DISCORD;
+
 @Component
 @RequiredArgsConstructor
-public class MessageCreateHandler implements EventHandler<MessageCreateEvent> {
+public class DiscordMessageCreateHandler implements DiscordEventHandler<MessageCreateEvent> {
 
-    private static final Logger logger = LoggerFactory.getLogger(MessageCreateHandler.class);
+    private static final Logger logger = LoggerFactory.getLogger(DiscordMessageCreateHandler.class);
 
     private final DiscordChatService discordChatService;
 
@@ -35,25 +37,25 @@ public class MessageCreateHandler implements EventHandler<MessageCreateEvent> {
 
     @Override
     public Mono<Void> execute(final MessageCreateEvent event) {
-        final long startTime = System.currentTimeMillis();
+        final var startTime = System.currentTimeMillis();
         final var message = event.getMessage();
-        final var isNotBot = message.getAuthor().map(user -> !user.isBot()).orElse(false);
+        final boolean isNotBot = message.getAuthor().map(user -> !user.isBot()).orElse(false);
         final var isMentioned = message.getUserMentionIds().contains(Snowflake.of(discordProperties.applicationId()));
         if (isNotBot && isMentioned) {
             final var guildId = message.getGuildId().map(Snowflake::asString).orElse("");
-            final var userMessageContent = getMessageContentWithoutMention(message.getContent());
+            final var userMessage = getMessageContentWithoutMention(message.getContent());
             final var userName = message.getAuthor().map(User::getUsername).orElse("");
-            final var request = DiscordCompleteChatRequestBo.builder() //
+            final var request = DiscordCompleteChatRequest.builder() //
                     .guildId(guildId) //
-                    .maxCompletionTokens(discordProperties.maxCompletionTokens()) //
-                    .maxPromptTokens(discordProperties.maxPromptTokens()) //
-                    .userName(userName) //
                     .lastChatTime(LocalDateTime.now(Clock.system(ZoneId.of("Europe/Paris")))) //
+                    .userName(userName) //
+                    .userMessage(userMessage) //
                     .build();
-            final var response = discordChatService.completeChat(request, userMessageContent);
-            final long endTime = System.currentTimeMillis();
-            logger.info("Discord -- Chat completed in {}s in guild: {}",
-                    FormatUtils.convertMillisToStringWithMaxTwoFractionDigits(endTime - startTime), guildId);
+            final var response = discordChatService.gpt35completeChat(request);
+            final var endTime = System.currentTimeMillis();
+            final var executionTime = SharedFormatUtils.convertMillisToStringWithMaxTwoFractionDigits(
+                    endTime - startTime);
+            logger.info(LOG_PREFIX_DISCORD + "Message created in {}s in guild: {}", executionTime, guildId);
             return message.getChannel().flatMap(channel -> channel.createMessage(response).then());
         } else {
             return Mono.empty();
