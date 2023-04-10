@@ -1,7 +1,9 @@
 package com.rua.service;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rua.entity.DiscordGuildChatLog;
 import com.rua.model.DiscordCompleteChatRequest;
 import com.rua.model.request.Message;
@@ -9,6 +11,7 @@ import com.rua.model.response.ChatGPTResponse;
 import com.rua.property.DiscordProperties;
 import com.rua.repository.DiscordGuildChatLogRepository;
 import com.rua.util.SharedGPT35Logic;
+import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +20,7 @@ import java.util.List;
 
 import static com.rua.constant.DiscordConstants.RESPONSE_EXCEED_MAX_PROMPT_TOKENS;
 import static com.rua.constant.DiscordConstants.RESPONSE_EXCEED_MAX_RESPONSE_TOKENS;
+import static com.rua.util.SharedDataUtils.isNullOrEmpty;
 
 @RequiredArgsConstructor
 @Service
@@ -31,12 +35,11 @@ public class DiscordChatService {
     private final SharedGPT35Logic sharedGPT35Logic;
 
     public String gpt35completeChat(final DiscordCompleteChatRequest discordCompleteChatRequest) {
-        final var gson = new Gson();
         var guildChatLog = discordGuildChatLogRepository.findByGuildId(discordCompleteChatRequest.guildId());
-        final List<Message> messages = retrieveHistoryMessages(gson, guildChatLog);
+        final List<Message> messages = retrieveHistoryMessages(guildChatLog);
         messages.add(new Message("user", discordCompleteChatRequest.userMessage()));
         final var response = openAIClientService.chat(messages);
-        return updateChatLogAndCreateResponse(gson, guildChatLog, messages, discordCompleteChatRequest, response);
+        return updateChatLogAndCreateResponse(guildChatLog, messages, discordCompleteChatRequest, response);
     }
 
     public void resetChatHistory(final String guildId) {
@@ -48,28 +51,46 @@ public class DiscordChatService {
     }
 
     public void updateSystemMessageAndPersist(final String guildId, final String systemMessageContent) {
-        final var gson = new Gson();
         var guildChatLog = discordGuildChatLogRepository.findByGuildId(guildId);
-        final var historyMessages = retrieveHistoryMessages(gson, guildChatLog);
+        final var historyMessages = retrieveHistoryMessages(guildChatLog);
         sharedGPT35Logic.updateSystemMessage(historyMessages, systemMessageContent);
         if (guildChatLog == null) {
             guildChatLog = new DiscordGuildChatLog();
             guildChatLog.setGuildId(guildId);
         }
-        guildChatLog.setMessages(gson.toJson(historyMessages));
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            guildChatLog.setMessages(mapper.writeValueAsString(historyMessages));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         discordGuildChatLogRepository.save(guildChatLog);
     }
 
-    private List<Message> retrieveHistoryMessages(final Gson gson, final DiscordGuildChatLog guildChatLog) {
+    @Nonnull
+    private List<Message> retrieveHistoryMessages(final DiscordGuildChatLog guildChatLog) {
         if (guildChatLog == null) {
             return new ArrayList<>();
         }
-        List<Message> historyMessages = gson.fromJson(guildChatLog.getMessages(), new TypeToken<ArrayList<Message>>() {
-        }.getType());
+        // TODO change to util
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+        List<Message> historyMessages = null;
+        try {
+            if (isNullOrEmpty(guildChatLog.getMessages())) {
+                return new ArrayList<>();
+            }
+            historyMessages = mapper.readValue(guildChatLog.getMessages(),
+                    new TypeReference<List<Message>>() {
+                    });
+            // TODO exception handling
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
         return historyMessages != null ? historyMessages : new ArrayList<>();
     }
 
-    private String updateChatLogAndCreateResponse(final Gson gson, DiscordGuildChatLog guildChatLog,
+    private String updateChatLogAndCreateResponse(DiscordGuildChatLog guildChatLog,
                                                   final List<Message> historyMessages,
                                                   final DiscordCompleteChatRequest request,
                                                   final ChatGPTResponse response) {
@@ -102,8 +123,13 @@ public class DiscordChatService {
             guildChatLog = new DiscordGuildChatLog();
         }
         guildChatLog.setGuildId(request.guildId());
-        guildChatLog.setMessages(gson.toJson(historyMessages));
-        guildChatLog.setLastChatTime(request.lastChatTime());
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            guildChatLog.setMessages(mapper.writeValueAsString(historyMessages));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        guildChatLog.setLastChatTime(request.lastChatTime().toString());
         guildChatLog.setLastChatUserName(request.userName());
         discordGuildChatLogRepository.save(guildChatLog);
         botResponseContent.append(gptResponseContent);

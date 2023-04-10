@@ -3,8 +3,6 @@ package com.rua.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDateTime;
-
 @AllArgsConstructor
 @Builder
 @Entity
@@ -25,7 +23,7 @@ public class DiscordGuildChatLog {
     private String messages;
 
     @Column(name = "last_chat_time")
-    private LocalDateTime lastChatTime;
+    private String lastChatTime;
 
     @Column(name = "last_chat_user_name")
     private String lastChatUserName;
