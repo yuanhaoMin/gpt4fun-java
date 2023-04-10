@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api 'com.github.plexpt:chatgpt:4.0.6'
-
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.2.1'
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign:4.0.1'
     implementation project(':shared')
 }

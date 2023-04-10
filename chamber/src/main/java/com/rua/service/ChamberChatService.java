@@ -1,8 +1,7 @@
 package com.rua.service;
 
-import com.plexpt.chatgpt.entity.chat.Message;
 import com.rua.model.ChamberChatMessageRequest;
-import com.rua.model.GPTCompleteChatRequest;
+import com.rua.model.request.Message;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,17 +11,13 @@ import java.util.List;
 @Service
 public class ChamberChatService {
 
-    private final GPTChatService gptChatService;
+    private final OpenAIClientService openAIClientService;
 
     public String gpt35completeChat(final ChamberChatMessageRequest chamberChatMessageRequest) {
-        final var messages = List.of(Message.ofSystem(chamberChatMessageRequest.systemMessage()),
-                Message.of(chamberChatMessageRequest.userMessage()));
-        final var request = GPTCompleteChatRequest.builder() //
-                .messages(messages) //
-                .maxCompletionTokens(1000) //
-                .build();
-        final var chatCompletionResponse = gptChatService.gpt35CompleteChat(request);
-        return chatCompletionResponse.getChoices().get(0).getMessage().getContent();
+        final var messages = List.of(new Message("system", chamberChatMessageRequest.systemMessage()),
+                new Message("user", chamberChatMessageRequest.userMessage()));
+        final var chatCompletionResponse = openAIClientService.chat(messages);
+        return chatCompletionResponse.choices().get(0).message().content();
     }
 
 }
