@@ -1,13 +1,18 @@
 plugins {
-    id 'java'
-    id 'org.springframework.boot' version '3.0.5'
     id 'io.spring.dependency-management' version '1.1.0'
+    id 'java'
+    id 'nebula.lint' version '18.0.3'
+    id 'org.springframework.boot' version '3.0.5'
 }
 
 allprojects() {
-    apply plugin: 'java'
-    apply plugin: 'org.springframework.boot'
     apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'java'
+    apply plugin: "nebula.lint"
+    apply plugin: 'org.springframework.boot'
+
+    // Check unused dependencies
+    gradleLint.rules = ['all-dependency', 'unused-dependency']
 
     group 'com.rua'
     version '1.0-SNAPSHOT'
@@ -15,6 +20,8 @@ allprojects() {
     java.sourceCompatibility(JavaVersion.VERSION_17)
 
     repositories {
+        // For plugin gradleLint
+        jcenter()
         mavenCentral()
     }
 

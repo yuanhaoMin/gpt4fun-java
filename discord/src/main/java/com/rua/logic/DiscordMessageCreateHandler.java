@@ -9,8 +9,7 @@ import discord4j.common.util.Snowflake;
 import discord4j.core.event.domain.message.MessageCreateEvent;
 import discord4j.core.object.entity.User;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -22,9 +21,8 @@ import static com.rua.constant.DiscordConstants.LOG_PREFIX_DISCORD;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class DiscordMessageCreateHandler implements DiscordEventHandler<MessageCreateEvent> {
-
-    private static final Logger logger = LoggerFactory.getLogger(DiscordMessageCreateHandler.class);
 
     private final DiscordChatService discordChatService;
 
@@ -55,7 +53,7 @@ public class DiscordMessageCreateHandler implements DiscordEventHandler<MessageC
             final var endTime = System.currentTimeMillis();
             final var executionTime = SharedFormatUtils.convertMillisToStringWithMaxTwoFractionDigits(
                     endTime - startTime);
-            logger.info(LOG_PREFIX_DISCORD + "Message created in {}s in guild: {}", executionTime, guildId);
+            log.info(LOG_PREFIX_DISCORD + "Message created in {}s in guild: {}", executionTime, guildId);
             return message.getChannel().flatMap(channel -> channel.createMessage(response).then());
         } else {
             return Mono.empty();

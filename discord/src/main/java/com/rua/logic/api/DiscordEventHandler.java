@@ -19,7 +19,7 @@ public interface DiscordEventHandler<T extends Event> {
     default Mono<Void> handleError(Throwable error) {
         final var errorLog = error.toString();
         logger.error(LOG_PREFIX_DISCORD + "Unable to process {}, error: {}", getEventType().getSimpleName(), errorLog);
-        return Mono.empty();
+        return Mono.error(error);
     }
 
 }

@@ -9,17 +9,15 @@ import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import static com.rua.constant.DiscordConstants.*;
 
 @Component
+@Slf4j
 public class DiscordCommandSetSystemMessage implements DiscordCommandHandler, DiscordCommandRequestBuilder {
-
-    private static final Logger logger = LoggerFactory.getLogger(DiscordCommandSetSystemMessage.class);
 
     @Override
     public ApplicationCommandRequest build() {
@@ -53,7 +51,7 @@ public class DiscordCommandSetSystemMessage implements DiscordCommandHandler, Di
                 .map(ApplicationCommandInteractionOptionValue::asString) //
                 .orElse("");
         discordChatService.updateSystemMessageAndPersist(guildId, systemMessageContent);
-        logger.info(LOG_PREFIX_DISCORD + "System message updated in guild: {}", guildId);
+        log.info(LOG_PREFIX_DISCORD + "System message updated in guild: {}", guildId);
         return event.reply(String.format(COMMAND_SET_SYSTEM_MESSAGE_SUCCESS, systemMessageContent));
     }
 

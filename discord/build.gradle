@@ -1,6 +1,6 @@
 dependencies {
     implementation 'com.discord4j:discord4j-core:3.2.4'
-    implementation project(':gpt')
+    implementation project(':openai')
     implementation project(':persistence')
     implementation project(':shared')
 }

@@ -1,5 +1,5 @@
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web:3.0.4'
-    implementation project(':gpt')
+    implementation project(':openai')
     implementation project(':persistence')
 }
