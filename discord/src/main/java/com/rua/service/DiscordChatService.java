@@ -51,7 +51,7 @@ public class DiscordChatService {
         }
     }
 
-    public void updateSystemMessageAndPersist(final String guildId, final String systemMessageContent) {
+    public void updateSystemMessageAndPersist(final String guildId, @Nonnull final String systemMessageContent) {
         var guildChatLog = discordGuildChatLogRepository.findByGuildId(guildId);
         final var historyMessages = retrieveHistoryMessages(guildChatLog);
         openAIGPT35Logic.updateSystemMessage(historyMessages, systemMessageContent);
@@ -68,19 +68,19 @@ public class DiscordChatService {
         if (guildChatLog == null) {
             return new ArrayList<>();
         }
-        List<OpenAIGPT35ChatMessage> historyOpenAIGPT35ChatMessages = null;
-        historyOpenAIGPT35ChatMessages = convertJsonToList(guildChatLog.getMessages(), OpenAIGPT35ChatMessage.class);
-        return historyOpenAIGPT35ChatMessages != null ? historyOpenAIGPT35ChatMessages : new ArrayList<>();
+        List<OpenAIGPT35ChatMessage> historyMessages = null;
+        historyMessages = convertJsonToList(guildChatLog.getMessages(), OpenAIGPT35ChatMessage.class);
+        return historyMessages != null ? historyMessages : new ArrayList<>();
     }
 
     private String updateChatLogAndCreateResponse(DiscordGuildChatLog guildChatLog,
-                                                  final List<OpenAIGPT35ChatMessage> historyOpenAIGPT35ChatMessages,
+                                                  final List<OpenAIGPT35ChatMessage> historyMessages,
                                                   final DiscordCompleteChatRequest request,
                                                   final OpenAIGPT35ChatResponse response) {
         final var botResponseContent = new StringBuilder();
         // Update chat history
         final var gptResponseContent = response.choices().get(0).message().content();
-        historyOpenAIGPT35ChatMessages.add(new OpenAIGPT35ChatMessage(GPT35TURBO_ASSISTANT, gptResponseContent));
+        historyMessages.add(new OpenAIGPT35ChatMessage(GPT35TURBO_ASSISTANT, gptResponseContent));
         // The conversion between Chinese characters and Token is greater than 1, subtract 3 when comparing
         if (response.usage().completionTokens() >= discordProperties.maxCompletionTokens() - 3) {
             botResponseContent.append(
@@ -92,7 +92,7 @@ public class DiscordChatService {
         final var maxPromptTokens = discordProperties.maxPromptTokens();
         if (nextPromptTokens >= maxPromptTokens) {
             final var purgedPromptTokens = openAIGPT35Logic.limitPromptTokensByPurgingHistoryMessages(nextPromptTokens,
-                    maxPromptTokens, historyOpenAIGPT35ChatMessages);
+                    maxPromptTokens, historyMessages);
             botResponseContent.append(String.format(RESPONSE_EXCEED_MAX_PROMPT_TOKENS, //
                             nextPromptTokens, //
                             maxPromptTokens, //
@@ -106,7 +106,7 @@ public class DiscordChatService {
             guildChatLog = new DiscordGuildChatLog();
         }
         guildChatLog.setGuildId(request.guildId());
-        guildChatLog.setMessages(convertObjectToJson(historyOpenAIGPT35ChatMessages));
+        guildChatLog.setMessages(convertObjectToJson(historyMessages));
         guildChatLog.setLastChatTime(request.lastChatTime().toString());
         guildChatLog.setLastChatUserName(request.userName());
         discordGuildChatLogRepository.save(guildChatLog);
