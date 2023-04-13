@@ -1,13 +1,15 @@
-package com.rua.config;
+package com.rua;
 
+import com.rua.config.OpenAIClientConfig;
 import com.rua.model.request.OpenAIGPT35ChatRequest;
-import com.rua.model.request.OpenAIWhisperTranscriptionRequest;
 import com.rua.model.response.OpenAIGPT35ChatResponse;
 import com.rua.model.response.OpenAIWhisperTranscriptionResponse;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
 
 import static com.rua.constant.OpenAIConstants.*;
 
@@ -18,11 +20,12 @@ import static com.rua.constant.OpenAIConstants.*;
 )
 public interface OpenAIClient {
 
-    @PostMapping(value = OPENAI_API_CHAT_URL, headers = {"Content-Type=application/json"})
+    @PostMapping(value = OPENAI_API_CHAT_URL, consumes = MediaType.APPLICATION_JSON_VALUE)
     OpenAIGPT35ChatResponse chat(@RequestBody OpenAIGPT35ChatRequest openAIGPT35ChatRequest);
 
-    @PostMapping(value = OPENAI_API_CREATE_TRANSCRIPTION_URL, headers = {"Content-Type=multipart/form-data"})
+    @PostMapping(value = OPENAI_API_CREATE_TRANSCRIPTION_URL, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     OpenAIWhisperTranscriptionResponse createTranscription(
-            @ModelAttribute OpenAIWhisperTranscriptionRequest openAIWhisperTranscriptionRequest);
+            // All parameters must be listed with @RequestPart, use one DTO will not work!
+            @RequestPart("model") String model, @RequestPart("file") MultipartFile file);
 
 }

@@ -2,7 +2,7 @@ package com.rua.controller;
 
 import com.rua.constant.ChamberControllerConstants;
 import com.rua.model.ChamberChatMessageRequest;
-import com.rua.model.ChamberChatMessageResponse;
+import com.rua.model.response.OpenAIGPT35ChatResponse;
 import com.rua.service.ChamberChatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -15,16 +15,14 @@ public class ChamberChatController {
     private final ChamberChatService chamberChatService;
 
     // TODO validation
+    // TODO Exceeding limit error handling instead of 500
     @PostMapping(value = "/messages")
-    public ChamberChatMessageResponse sendMessageAndGetResponse(@RequestBody ChamberChatMessageRequest request) {
-        final var responseMessage = chamberChatService.gpt35completeChat(request);
-        return ChamberChatMessageResponse.builder() //
-                .responseMessage(responseMessage) //
-                .build();
+    public OpenAIGPT35ChatResponse sendMessageAndGetResponse(@RequestBody final ChamberChatMessageRequest request) {
+        return chamberChatService.gpt35completeChat(request);
     }
 
     @DeleteMapping(value = "/history")
-    public String deleteChatHistory(long userId) {
+    public String deleteChatHistory(final long userId) {
         return "Chat history deleted";
     }
 

@@ -81,10 +81,10 @@ public class DiscordChatService {
         // Update chat history
         final var gptResponseContent = response.choices().get(0).message().content();
         historyMessages.add(new OpenAIGPT35ChatMessage(GPT35TURBO_ASSISTANT, gptResponseContent));
-        // The conversion between Chinese characters and Token is greater than 1, subtract 3 when comparing
-        if (response.usage().completionTokens() >= discordProperties.maxCompletionTokens() - 3) {
+        // Reaching gpt35 max total tokens means the response is truncated
+        if (response.usage().totalTokens() == 4097) {
             botResponseContent.append(
-                            String.format(RESPONSE_EXCEED_MAX_RESPONSE_TOKENS, discordProperties.maxCompletionTokens())) //
+                            String.format(RESPONSE_EXCEED_MAX_RESPONSE_TOKENS, discordProperties.maxPromptTokens())) //
                     .append('\n');
         }
         // Next time prompt tokens = current total tokens + next time user message tokens

@@ -9,8 +9,8 @@ public class DiscordConstants {
     public static final String LOG_PREFIX_DISCORD = "Discord -- ";
 
     // Bot response
-    public static final String RESPONSE_EXCEED_MAX_RESPONSE_TOKENS = "系统: 由于ChatGPT回复所用的字数超过了预设的最大Token=%s的限制, 因此该回答已经被截短.";
-    public static final String RESPONSE_EXCEED_MAX_PROMPT_TOKENS = "系统: 自动清理聊天记录%d/%d -> %d/%d, 请开始新的对话";
+    public static final String RESPONSE_EXCEED_MAX_RESPONSE_TOKENS = "系统: 由于聊天记录超过上限Token=%s, 此回答已被截短";
+    public static final String RESPONSE_EXCEED_MAX_PROMPT_TOKENS = "系统: 自动清理聊天记录%d/%d -> %d/%d, 建议开始新的对话";
 
     // Command clear chat history
     public static final String COMMAND_CLEAR_CHAT_HISTORY_NAME = "clear";

@@ -7,5 +7,6 @@ import java.util.List;
 
 @Builder
 public record OpenAIGPT35ChatRequest(String model,
-                                     @JsonProperty("messages") List<OpenAIGPT35ChatMessage> messages) {
+                                     @JsonProperty("messages") List<OpenAIGPT35ChatMessage> messages,
+                                     @JsonProperty("temperature") double temperature) {
 }

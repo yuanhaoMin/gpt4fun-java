@@ -2,6 +2,7 @@ package com.rua.service;
 
 import com.rua.model.ChamberChatMessageRequest;
 import com.rua.model.request.OpenAIGPT35ChatMessage;
+import com.rua.model.response.OpenAIGPT35ChatResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,12 +17,11 @@ public class ChamberChatService {
 
     private final OpenAIClientService openAIClientService;
 
-    public String gpt35completeChat(final ChamberChatMessageRequest chamberChatMessageRequest) {
+    public OpenAIGPT35ChatResponse gpt35completeChat(final ChamberChatMessageRequest chamberChatMessageRequest) {
         final var messages = List.of(
                 new OpenAIGPT35ChatMessage(GPT35TURBO_SYSTEM, chamberChatMessageRequest.systemMessage()),
                 new OpenAIGPT35ChatMessage(GPT35TURBO_USER, chamberChatMessageRequest.userMessage()));
-        final var chatCompletionResponse = openAIClientService.chat(messages);
-        return chatCompletionResponse.choices().get(0).message().content();
+        return openAIClientService.chat(messages);
     }
 
 }

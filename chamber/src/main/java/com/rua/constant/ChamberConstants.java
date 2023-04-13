@@ -7,7 +7,7 @@ public class ChamberConstants {
     }
 
     // Log
-    public static final String LOG_PREFIX_TIME_CHAMBER = "Time chamber -- ";
+    public static final String LOG_PREFIX_TIME_CHAMBER = "Chamber -- ";
 
     // Controller path
 
