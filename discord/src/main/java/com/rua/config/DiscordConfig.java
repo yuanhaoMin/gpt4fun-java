@@ -19,7 +19,7 @@ public class DiscordConfig {
 
     @Bean
     public GatewayDiscordClient gatewayDiscordClient() {
-        return DiscordClientBuilder.create(discordProperties.token()) //
+        return DiscordClientBuilder.create(discordProperties.botToken()) //
                 .build() //
                 .login() //
                 .block();
