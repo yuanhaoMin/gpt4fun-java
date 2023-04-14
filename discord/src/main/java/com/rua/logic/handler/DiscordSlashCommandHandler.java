@@ -1,8 +1,6 @@
-package com.rua.logic;
+package com.rua.logic.handler;
 
-import com.rua.command.api.DiscordCommandHandler;
-import com.rua.logic.api.DiscordEventHandler;
-import com.rua.service.DiscordChatService;
+import com.rua.logic.command.DiscordCommandHandler;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -16,8 +14,6 @@ public class DiscordSlashCommandHandler implements DiscordEventHandler<ChatInput
 
     private final List<DiscordCommandHandler> discordCommandHandlers;
 
-    private final DiscordChatService discordChatService;
-
     @Override
     public Class<ChatInputInteractionEvent> getEventType() {
         return ChatInputInteractionEvent.class;
@@ -27,10 +23,11 @@ public class DiscordSlashCommandHandler implements DiscordEventHandler<ChatInput
     public Mono<Void> execute(final ChatInputInteractionEvent event) {
         final var guildId = event.getInteraction().getGuildId();
         return guildId.map(snowflake -> discordCommandHandlers.stream() //
-                        .filter(discordCommandHandler -> discordCommandHandler.getCommandName().equals(event.getCommandName())) //
+                        .filter(discordCommandHandler -> discordCommandHandler.getCommandName()
+                                .equals(event.getCommandName())) //
                         .findFirst() //
-                        .map(discordCommandHandler -> discordCommandHandler.handleCommand(discordChatService, event,
-                                snowflake.asString())).orElse(Mono.empty())) //
+                        .map(discordCommandHandler -> discordCommandHandler.handleCommand(event, snowflake.asString()))
+                        .orElse(Mono.empty())) //
                 .orElseGet(Mono::empty);
     }
 

@@ -1,4 +1,4 @@
-package com.rua.logic.api;
+package com.rua.logic.handler;
 
 import discord4j.core.event.domain.Event;
 import org.slf4j.Logger;
@@ -19,7 +19,7 @@ public interface DiscordEventHandler<T extends Event> {
     default Mono<Void> handleError(Throwable error) {
         final var errorLog = error.toString();
         logger.error(LOG_PREFIX_DISCORD + "Unable to process {}, error: {}", getEventType().getSimpleName(), errorLog);
-        return Mono.error(error);
+        return Mono.empty();
     }
 
 }

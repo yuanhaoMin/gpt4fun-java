@@ -2,7 +2,7 @@ logging:
   level:
     com:
       rua:
-        OpenAIClient: DEBUG # Displays logs of Open feign client
+        OpenAIClient: INFO # Set to Debug to log feign requests/responses
   org:
     springframework:
       web: DEBUG # Displays error logs of, for example, bad request

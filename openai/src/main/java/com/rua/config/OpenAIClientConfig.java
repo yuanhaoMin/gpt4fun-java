@@ -6,8 +6,6 @@ import feign.Request;
 import feign.RequestInterceptor;
 import feign.Retryer;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
@@ -23,8 +21,6 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class OpenAIClientConfig {
 
-    private final ObjectFactory<HttpMessageConverters> messageConverters;
-
     private final OpenAIProperties openAIProperties;
 
     // Will be inserted in the header of each request
@@ -32,11 +28,6 @@ public class OpenAIClientConfig {
     public RequestInterceptor apiKeyInterceptor() {
         return request -> request.header("Authorization", "Bearer " + openAIProperties.apiKey());
     }
-
-//    @Bean
-//    public Encoder feignEncoder() {
-//        return new SpringFormEncoder(new SpringEncoder(messageConverters));
-//    }
 
     // Needed to log the request and response
     @Bean

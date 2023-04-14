@@ -1,4 +1,4 @@
-package com.rua.command.api;
+package com.rua.logic.command;
 
 import discord4j.discordjson.json.ApplicationCommandRequest;
 

@@ -1,6 +1,5 @@
-package com.rua.logic;
+package com.rua.logic.command;
 
-import com.rua.command.api.DiscordCommandRequestBuilder;
 import com.rua.property.DiscordProperties;
 import discord4j.core.GatewayDiscordClient;
 import lombok.RequiredArgsConstructor;

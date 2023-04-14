@@ -1,14 +1,13 @@
-package com.rua.command;
+package com.rua.logic.command;
 
-import com.rua.command.api.DiscordCommandHandler;
-import com.rua.command.api.DiscordCommandRequestBuilder;
-import com.rua.service.DiscordChatService;
+import com.rua.logic.DiscordChatLogic;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -16,8 +15,11 @@ import reactor.core.publisher.Mono;
 import static com.rua.constant.DiscordConstants.*;
 
 @Component
+@RequiredArgsConstructor
 @Slf4j
 public class DiscordCommandSetSystemMessage implements DiscordCommandHandler, DiscordCommandRequestBuilder {
+
+    private final DiscordChatLogic discordChatLogic;
 
     @Override
     public ApplicationCommandRequest build() {
@@ -39,8 +41,7 @@ public class DiscordCommandSetSystemMessage implements DiscordCommandHandler, Di
     }
 
     @Override
-    public Mono<Void> handleCommand(final DiscordChatService discordChatService, final ChatInputInteractionEvent event,
-                                    final String guildId) {
+    public Mono<Void> handleCommand(final ChatInputInteractionEvent event, final String guildId) {
         final var optInteraction = event.getInteraction().getCommandInteraction();
         if (optInteraction.isEmpty()) {
             return Mono.empty();
@@ -50,7 +51,7 @@ public class DiscordCommandSetSystemMessage implements DiscordCommandHandler, Di
                 .flatMap(ApplicationCommandInteractionOption::getValue) //
                 .map(ApplicationCommandInteractionOptionValue::asString) //
                 .orElse("");
-        discordChatService.updateSystemMessageAndPersist(guildId, systemMessageContent);
+        discordChatLogic.updateSystemMessageAndPersist(guildId, systemMessageContent);
         log.info(LOG_PREFIX_DISCORD + "System message updated in guild: {}", guildId);
         return event.reply(String.format(COMMAND_SET_SYSTEM_MESSAGE_SUCCESS, systemMessageContent));
     }
