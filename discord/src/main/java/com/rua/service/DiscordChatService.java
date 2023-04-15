@@ -1,9 +1,9 @@
 package com.rua.service;
 
 import com.rua.logic.DiscordChatLogic;
-import com.rua.model.DiscordCompleteChatRequest;
+import com.rua.model.request.DiscordCompleteChatRequestBo;
 import com.rua.model.request.OpenAIGPT35ChatMessage;
-import com.rua.model.response.OpenAIGPT35ChatResponse;
+import com.rua.model.response.OpenAIGPT35ChatResponseDto;
 import com.rua.property.DiscordProperties;
 import com.rua.util.OpenAIGPT35Logic;
 import lombok.RequiredArgsConstructor;
@@ -19,15 +19,15 @@ import static com.rua.constant.OpenAIConstants.GPT35TURBO_USER;
 @Service
 public class DiscordChatService {
 
-    private final DiscordChatLogic discordChatLogic;
-
-    private final DiscordProperties discordProperties;
-
     private final OpenAIClientService openAIClientService;
+
+    private final DiscordChatLogic discordChatLogic;
 
     private final OpenAIGPT35Logic openAIGPT35Logic;
 
-    public String gpt35completeChat(final DiscordCompleteChatRequest request) {
+    private final DiscordProperties discordProperties;
+
+    public String gpt35completeChat(final DiscordCompleteChatRequestBo request) {
         var guildChatLog = discordChatLogic.findByGuildId(request.guildId());
         final List<OpenAIGPT35ChatMessage> messages = discordChatLogic.retrieveHistoryMessages(guildChatLog);
         // Add user message for this time prompt
@@ -41,9 +41,9 @@ public class DiscordChatService {
         return botResponse;
     }
 
-    private String generateBotResponseAndHandleTokenLimit(final OpenAIGPT35ChatResponse gptResponse,
+    private String generateBotResponseAndHandleTokenLimit(final OpenAIGPT35ChatResponseDto gptResponse,
                                                           final List<OpenAIGPT35ChatMessage> historyMessages,
-                                                          String userName) {
+                                                          final String userName) {
         final var botResponse = new StringBuilder();
         // Next time prompt tokens = current total tokens + estimated next time prompt tokens
         final var estimatedNextTimePromptTokens = gptResponse.usage()

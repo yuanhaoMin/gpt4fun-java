@@ -1,6 +1,7 @@
 ### Java ###
 *.class
 out/
+generated/
 
 # Package Files #
 *.jar

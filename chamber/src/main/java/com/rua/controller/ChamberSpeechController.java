@@ -1,8 +1,8 @@
 package com.rua.controller;
 
 import com.rua.constant.ChamberControllerConstants;
-import com.rua.model.request.OpenAISpeechToTextRequest;
-import com.rua.model.response.OpenAIWhisperTranscriptionResponse;
+import com.rua.model.request.OpenAISpeechToTextRequestDto;
+import com.rua.model.response.OpenAIWhisperTranscriptionResponseDto;
 import com.rua.service.ChamberSpeechService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -22,8 +22,8 @@ public class ChamberSpeechController {
     @PostMapping(value = "/speech-to-text", //
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE, //
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public OpenAIWhisperTranscriptionResponse convertVoiceToText(
-            @ModelAttribute final OpenAISpeechToTextRequest request) {
+    public OpenAIWhisperTranscriptionResponseDto convertVoiceToText(
+            @ModelAttribute final OpenAISpeechToTextRequestDto request) {
         return chamberSpeechService.convertVoiceToText(request);
     }
 

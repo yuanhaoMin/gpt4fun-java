@@ -1,7 +1,7 @@
 package com.rua.service;
 
-import com.rua.model.request.OpenAISpeechToTextRequest;
-import com.rua.model.response.OpenAIWhisperTranscriptionResponse;
+import com.rua.model.request.OpenAISpeechToTextRequestDto;
+import com.rua.model.response.OpenAIWhisperTranscriptionResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,7 +11,7 @@ public class ChamberSpeechService {
 
     private final OpenAIClientService openAIClientService;
 
-    public OpenAIWhisperTranscriptionResponse convertVoiceToText(final OpenAISpeechToTextRequest request) {
+    public OpenAIWhisperTranscriptionResponseDto convertVoiceToText(final OpenAISpeechToTextRequestDto request) {
         return openAIClientService.createTranscription(request);
     }
 

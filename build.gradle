@@ -1,16 +1,17 @@
 plugins {
-    id 'io.spring.dependency-management' version '1.1.0'
-    id 'java'
-    id 'org.springframework.boot' version '3.0.5'
+    id "io.spring.dependency-management" version "1.1.0"
+    id "java"
+    id "org.springframework.boot" version "${springBootVersion}"
 }
 
+// TODO: Remove unused dependencies
 allprojects() {
-    apply plugin: 'io.spring.dependency-management'
-    apply plugin: 'java'
-    apply plugin: 'org.springframework.boot'
+    apply plugin: "io.spring.dependency-management"
+    apply plugin: "java"
+    apply plugin: "org.springframework.boot"
 
-    group 'com.rua'
-    version '1.0-SNAPSHOT'
+    group "com.rua"
+    version "1.0-SNAPSHOT"
 
     java.sourceCompatibility(JavaVersion.VERSION_17)
 
@@ -19,26 +20,31 @@ allprojects() {
     }
 
     dependencies {
-        annotationProcessor 'org.projectlombok:lombok:1.18.26'
+        annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
 
-        compileOnly 'org.projectlombok:lombok:1.18.26'
+        compileOnly "org.projectlombok:lombok:${lombokVersion}"
 
-        implementation 'org.springframework.boot:spring-boot-starter:3.0.4'
+        implementation "org.springframework.boot:spring-boot-starter:${springBootVersion}"
     }
 
     test {
         useJUnitPlatform()
     }
 
-    if (project.name != 'application') {
+    if (project.name != "application") {
         bootJar {
             enabled = false
         }
-
         jar {
             enabled = true
         }
     }
+
+    // Delete out directory before clean
+    tasks.register("cleanBuildDir", Delete) {
+        delete "${projectDir}/out"
+    }
+    tasks.clean.dependsOn("cleanBuildDir")
 }
 
 bootJar {

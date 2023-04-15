@@ -1,6 +1,6 @@
 dependencies {
-    implementation project(':chamber')
-    implementation project(':discord')
+    implementation project(":chamber")
+    implementation project(":discord")
 }
 
 bootJar {

@@ -1,7 +1,7 @@
 package com.rua.logic;
 
 import com.rua.entity.DiscordGuildChatLog;
-import com.rua.model.DiscordCompleteChatRequest;
+import com.rua.model.request.DiscordCompleteChatRequestBo;
 import com.rua.model.request.OpenAIGPT35ChatMessage;
 import com.rua.repository.DiscordGuildChatLogRepository;
 import com.rua.util.OpenAIGPT35Logic;
@@ -12,8 +12,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.rua.util.SharedDataUtils.convertJsonToList;
-import static com.rua.util.SharedDataUtils.convertObjectToJson;
+import static com.rua.util.SharedDataUtils.*;
 
 @Component
 @RequiredArgsConstructor
@@ -24,7 +23,7 @@ public class DiscordChatLogic {
     private final OpenAIGPT35Logic openAIGPT35Logic;
 
     @Nonnull
-    public DiscordGuildChatLog findByGuildId(String guildId) {
+    public DiscordGuildChatLog findByGuildId(final String guildId) {
         final var guildChatLog = discordGuildChatLogRepository.findByGuildId(guildId);
         return guildChatLog != null ? guildChatLog : new DiscordGuildChatLog();
     }
@@ -39,17 +38,16 @@ public class DiscordChatLogic {
 
     @Nonnull
     public List<OpenAIGPT35ChatMessage> retrieveHistoryMessages(@Nonnull final DiscordGuildChatLog guildChatLog) {
-        List<OpenAIGPT35ChatMessage> historyMessages = convertJsonToList(guildChatLog.getMessages(),
-                OpenAIGPT35ChatMessage.class);
+        final var historyMessages = convertJsonToList(guildChatLog.getMessages(), OpenAIGPT35ChatMessage.class);
         return historyMessages != null ? historyMessages : new ArrayList<>();
     }
 
-    public void updateDiscordGuildChatLog(@Nonnull DiscordGuildChatLog guildChatLog,
-                                          List<OpenAIGPT35ChatMessage> historyMessages,
-                                          DiscordCompleteChatRequest request) {
+    public void updateDiscordGuildChatLog(@Nonnull final DiscordGuildChatLog guildChatLog,
+                                          final List<OpenAIGPT35ChatMessage> historyMessages,
+                                          final DiscordCompleteChatRequestBo request) {
         guildChatLog.setGuildId(request.guildId());
         guildChatLog.setMessages(convertObjectToJson(historyMessages));
-        guildChatLog.setLastChatTime(request.lastChatTime().toString());
+        guildChatLog.setLastChatTime(toStringNullSafe(request.lastChatTime()));
         guildChatLog.setLastChatUserName(request.userName());
         discordGuildChatLogRepository.save(guildChatLog);
     }
