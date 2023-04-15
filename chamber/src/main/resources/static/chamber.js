@@ -1,22 +1,35 @@
 const messagesContainer = document.getElementById('messages-container');
-const inputMessage = document.getElementById('input-message');
+const inputBox = document.getElementById('input-box');
 const sendButton = document.getElementById('send-button');
 const updateButton = document.getElementById('update-button');
 const resetButton = document.getElementById('reset-button');
 
+// for text area
+function auto_grow(element) {
+	console.log(element.style.height);
+	console.log(element.style.scrollHeight);
+    element.style.height = "44px";
+    element.style.height = (element.scrollHeight)+"px";
+}
+function reset_height(element) {
+	element.style.height = element.style.minHeight;
+}
+
+
 sendButton.addEventListener('click', sendUserInputAndDisplayResponse);
-inputMessage.addEventListener('keydown', (event) => {
+inputBox.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
         sendUserInputAndDisplayResponse();
     }
 });
 async function sendUserInputAndDisplayResponse() {
-    var userInput = inputMessage.value.trim();
+    var userInput = inputBox.value.trim();
     if (!userInput)
         return;
 	userInput = '我： ' + userInput;
     createAndAppendMessage(userInput, 'user');
-    inputMessage.value = '';
+    inputBox.value = '';
+	reset_height(inputBox);
     const response = await completeChat(userInput);
     createAndAppendMessage(response, 'assistant');
 }
@@ -61,12 +74,14 @@ async function resetHistory() {
         responseMessage
     } = await response.json();
     messagesContainer.innerHTML = '';
+	inputBox.value = '';
+	reset_height(inputBox);
     createAndAppendMessage(responseMessage, 'assistant');
 }
 
 updateButton.addEventListener('click', updateSystemMessage);
 async function updateSystemMessage() {
-    const systemMessage = inputMessage.value.trim();
+    const systemMessage = inputBox.value.trim();
     if (!systemMessage)
         return;
     const userId = 1;
@@ -81,7 +96,8 @@ async function updateSystemMessage() {
         },
         body: JSON.stringify(requestBody)
     });
-	inputMessage.value = '';
+	inputBox.value = '';
+	reset_height(inputBox);
     const {
         responseMessage
     } = await response.json();

@@ -33,5 +33,3 @@ spring:
       static-locations:
         static-locations[0]: "file:src/main/resources/static/"
         static-locations[1]: "classpath:/static/"
-
-#  az spring app deploy --resource-group gpt4fun --service gpt4fun --name gpt4fun-be --artifact-path .\application\build\libs\application-1.0-SNAPSHOT.jar

@@ -1,25 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with ChatGPT 3.5</title>
-    <link rel="stylesheet" href="chamber.css">
-</head>
-<body>
-<div class="container">
-    <div class="chat-container">
-        <div class="messages-container" id="messages-container">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Chat with ChatGPT 3.5</title>
+      <link rel="stylesheet" href="chamber.css">
+   </head>
+   <body>
+      <div class="container">
+         <div class="messages-container" id="messages-container">
             <!-- Messages will appear here -->
-        </div>
-        <div class="input-container">
-            <input type="text" id="input-message" placeholder="Type your message...">
-            <button id="send-button">发送</button>
-			<button id="update-button">设置情景</button>
-            <button id="reset-button">重置</button>
-        </div>
-    </div>
-</div>
-<script src="chamber.js"></script>
-</body>
+         </div>
+         <div class="chat-container">
+            <div class="chat-button-container">
+               <button class="button-set" id="update-button">设置情景</button>
+               <button class="button-set" id="reset-button">重置</button>
+            </div>
+            <div class="chat-input-container">
+               <textarea id="input-box" oninput="auto_grow(this)"></textarea>
+            </div>
+         </div>
+         <div class="send-button-container">
+            <button class="button-send" id="send-button">发送</button>
+         </div>
+      </div>
+   </body>
+   <script src="chamber.js"></script>
 </html>
