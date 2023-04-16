@@ -1,40 +1,46 @@
 const messagesContainer = document.getElementById('messages-container');
 const inputBox = document.getElementById('input-box');
+const resetButton = document.getElementById('reset-button');
 const sendButton = document.getElementById('send-button');
 const updateButton = document.getElementById('update-button');
-const resetButton = document.getElementById('reset-button');
 
-// for text area
-function auto_grow(element) {
-	console.log(element.style.height);
-	console.log(element.style.scrollHeight);
-    element.style.height = "44px";
-    element.style.height = (element.scrollHeight)+"px";
+// Shared functions
+function createAndAppendMessage(text, sender) {
+    const messageElement = document.createElement('div');
+    const messageParagraph = document.createElement('p');
+    messageElement.classList.add('message', sender);
+    messageParagraph.style.width = '100%'; // Achieve word wrap
+    messageParagraph.style.wordWrap = 'break-word'; // Achieve word wrap
+	const processedText = text.replace(/\n/g, '<br/>'); // Required anyway
+    messageParagraph.innerHTML = processedText; // Set text in paragraph
+    messageElement.appendChild(messageParagraph);
+    messagesContainer.appendChild(messageElement);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
 }
-function reset_height(element) {
-	element.style.height = element.style.minHeight;
+function clearAllTextBox() {
+    messagesContainer.innerHTML = '';
+    inputBox.value = '';
 }
 
-
-sendButton.addEventListener('click', sendUserInputAndDisplayResponse);
+sendButton.addEventListener('click', senduserMessageAndDisplayResponse);
 inputBox.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
-        sendUserInputAndDisplayResponse();
+        senduserMessageAndDisplayResponse();
     }
 });
-async function sendUserInputAndDisplayResponse() {
-    var userInput = inputBox.value.trim();
-    if (!userInput)
-        return;
-	userInput = '我： ' + userInput;
-    createAndAppendMessage(userInput, 'user');
+async function senduserMessageAndDisplayResponse() {
+    const userMessage = inputBox.value.trim();
     inputBox.value = '';
-	reset_height(inputBox);
-    const response = await completeChat(userInput);
-    createAndAppendMessage(response, 'assistant');
+    if (!userMessage)
+        return;
+    const displayedUserMessage = 'User： ' + userMessage;
+    createAndAppendMessage(displayedUserMessage, 'user');
+    // const responseMessage = 'HIHIHHHIHIHIHIHIHIHIIHIHIHI';
+    const responseMessage = await completeChatApi(userMessage);
+    createAndAppendMessage(responseMessage, 'assistant');
 }
-async function completeChat(userMessage) {
-    const apiEndpoint = 'http://localhost:8080/chamber/chat/messages';
+async function completeChatApi(userMessage) {
+    const apiEndpoint = 'http://gpt4fun-gpt4fun-be.azuremicroservices.io/chamber/chat/messages';
     const userId = 1;
     const requestBody = {
         userId,
@@ -53,29 +59,18 @@ async function completeChat(userMessage) {
     } = await response.json();
     return responseMessage;
 }
-function createAndAppendMessage(text, sender) {
-    const messageElement = document.createElement('div');
-    messageElement.classList.add('message', sender);
-    text = text.replace(/\n/g, '<br>');
-    console.log(text);
-    messageElement.innerHTML = text;
-    messagesContainer.appendChild(messageElement);
-    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
 
 resetButton.addEventListener('click', resetHistory);
 async function resetHistory() {
     const userId = 1;
-    const apiEndpoint = `http://localhost:8080/chamber/chat/history/${userId}`;
+    clearAllTextBox();
+    const apiEndpoint = `http://gpt4fun-gpt4fun-be.azuremicroservices.io/chamber/chat/history/${userId}`;
     const response = await fetch(apiEndpoint, {
         method: 'DELETE'
     });
     const {
         responseMessage
     } = await response.json();
-    messagesContainer.innerHTML = '';
-	inputBox.value = '';
-	reset_height(inputBox);
     createAndAppendMessage(responseMessage, 'assistant');
 }
 
@@ -84,8 +79,13 @@ async function updateSystemMessage() {
     const systemMessage = inputBox.value.trim();
     if (!systemMessage)
         return;
+    clearAllTextBox();
+    const responseMessage = await updateSystemMessageApi(systemMessage);
+    createAndAppendMessage(responseMessage, 'assistant');
+}
+async function updateSystemMessageApi(systemMessage) {
     const userId = 1;
-    const apiEndpoint = `http://localhost:8080/chamber/chat/messages/${userId}`;
+    const apiEndpoint = `http://gpt4fun-gpt4fun-be.azuremicroservices.io/chamber/chat/messages/${userId}`;
     const requestBody = {
         systemMessage: systemMessage
     };
@@ -96,10 +96,54 @@ async function updateSystemMessage() {
         },
         body: JSON.stringify(requestBody)
     });
-	inputBox.value = '';
-	reset_height(inputBox);
     const {
         responseMessage
     } = await response.json();
-    createAndAppendMessage(responseMessage, 'assistant');
+    return responseMessage
+}
+
+// Record
+let isRecording = false;
+let chunks = [];
+
+const recordButton = document.getElementById('record-button');
+
+recordButton.addEventListener('click', () => {
+    if (!isRecording) {
+		isRecording = true;
+        recordButton.style.backgroundColor = '#225c5b';
+    } else {
+		isRecording = false;
+        recordButton.style.backgroundColor = '#343541';
+    }
+});
+
+function startRecording() {
+    chunks = [];
+    const mediaRecorder = new MediaRecorder(audioStream);
+    mediaRecorder.addEventListener('dataavailable', event => {
+        chunks.push(event.data);
+    });
+    mediaRecorder.addEventListener('stop', () => {
+        isRecording = false;
+        const blob = new Blob(chunks);
+        const formData = new FormData();
+        formData.append('audio', blob, 'audio.wav');
+        const response = fetch('http://gpt4fun-gpt4fun-be.azuremicroservices.io/chamber/speech/speech-to-text', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            },
+            body: formData
+        });
+        const {
+            responseMessage
+        } = response.json();
+    });
+    mediaRecorder.start();
+}
+
+function stopRecording() {
+    const mediaRecorder = new MediaRecorder(audioStream);
+    mediaRecorder.stop();
 }

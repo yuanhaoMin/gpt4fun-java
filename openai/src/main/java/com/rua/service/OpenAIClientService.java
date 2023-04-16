@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.rua.constant.OpenAIConstants.OPENAI_MODEL_GPT_35_TURBO;
+
 @RequiredArgsConstructor
 @Service
 public class OpenAIClientService {
@@ -20,8 +22,8 @@ public class OpenAIClientService {
     private final OpenAIProperties openAIProperties;
 
     public OpenAIGPT35ChatResponseDto chat(final List<OpenAIGPT35ChatMessage> openAIGPT35ChatMessages) {
-        final var openAIGPT35ChatRequest = OpenAIGPT35ChatRequestDto.builder().model(openAIProperties.gptModel())
-                .messages(openAIGPT35ChatMessages).temperature(0.9).build();
+        final var openAIGPT35ChatRequest = OpenAIGPT35ChatRequestDto.builder().model(OPENAI_MODEL_GPT_35_TURBO)
+                .messages(openAIGPT35ChatMessages).temperature(0.1).build();
         return openAIClient.chat(openAIGPT35ChatRequest);
     }
 

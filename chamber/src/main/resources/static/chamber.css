@@ -1,10 +1,11 @@
 :root {
   --mainColor: #343541;
+  --sideColor: #565869;
   --buttonColor: #225c5b;
   --buttonHoverColor: #4e9897;
   --buttonTextColor: #ffffff;
   --userTextColor: #ffffff;
-  --gptTextColor: #e6e0dd
+  --gptTextColor: #c6ccd6;
 }
 
 body {
@@ -28,7 +29,8 @@ body {
 }
 
 .messages-container {
-	margin-top: auto;
+	margin-top: auto; /* automatically adjusted to fill the available space */
+	width: 100%;
 }
 
 .chat-container {
@@ -36,7 +38,6 @@ body {
 	display: flex;
 	justify-content: center;
 	flex-direction: column;
-	height: 30%;
 	width: 100%;
 }
 	.chat-button-container {
@@ -51,14 +52,12 @@ body {
 	}
 		.chat-input-container textarea {
 			background-color: inherit;
-			border: none;
+			border: 1px solid white;
+			border-radius: 5px;
 			color: var(--userTextColor);
 			display: box;
 			font-size: 16px;
-			height: 48px;
-			min-height: 40px;
-			position: absolute;
-			bottom: 60px; /* adjust this value as needed */
+			height: 100px;
 			width: 100%;
 		}
 
@@ -70,14 +69,19 @@ body {
 }
 
 .message.user {
-background-color: var(--mainColor);
-color: var(--userTextColor);
+	background-color: var(--mainColor);
+	color: var(--userTextColor);
+	fontFamily = "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei", "WenQuanYi Micro Hei";
+	margin-bottom: 10px;
+	width: 100%;
+}
+.message.assistant {
+	background-color: var(--mainColor);
+	color: var(--gptTextColor);
+	fontFamily = "PingFang SC", "Hiragino Sans GB", "Heiti SC", "Microsoft YaHei", "WenQuanYi Micro Hei";
+	width: 100%;
 }
 
-.message.assistant {
-background-color: #444654;
-color: var(--gptTextColor);
-}
 
 /* Button send */
 .button-send {
@@ -118,6 +122,23 @@ color: var(--gptTextColor);
   box-shadow: none;
   transform: translateY(0);
 }
+/* Button record */
+.button-record {
+	background-color: var(--mainColor);
+	border: 2px solid var(--buttonColor);
+	border-radius: 50%;
+	box-shadow: 0 2px 4px darkslategray;
+	color: white;
+	margin-right: 40px;
+	width: 5%;
+}
+.button-record:hover {
+	transform: translateY(-2px);
+}
+.button-record:active {
+	box-shadow: none;
+	transform: translateY(0);
+}
 /* Button set */
 .button-set {
   appearance: none;
@@ -147,14 +168,30 @@ color: var(--gptTextColor);
   will-change: transform;
 }
 .button-set:disabled {
-  pointer-events: none;
+	pointer-events: none;
 }
 .button-set:hover {
-  background-color: var(--buttonColor);
-  transform: translateY(-2px);
+	background-color: var(--buttonColor);
+	transform: translateY(-2px);
 }
 .button-set:active {
-  box-shadow: none;
-  transform: translateY(0);
+	box-shadow: none;
+	transform: translateY(0);
 }
 
+/* Scroll bar */
+*::-webkit-scrollbar {
+	width: 16px;
+}
+*::-webkit-scrollbar-track {
+	background: var(--mainColor);
+}
+*::-webkit-scrollbar-thumb {
+	background-color: var(--sideColor);
+	border-radius: 3px;
+	border: 3px solid var(--sideColor);
+}
+/* Scroll bar grabber */
+::-webkit-resizer {
+	background: var(--mainColor);
+}
