@@ -40,7 +40,7 @@ async function senduserMessageAndDisplayResponse() {
     createAndAppendMessage(responseMessage, 'assistant');
 }
 async function completeChatApi(userMessage) {
-    const apiEndpoint = 'http://gpt4fun-gpt4fun-be.azuremicroservices.io/chamber/chat/messages';
+    const apiEndpoint = 'https://gpt4fun-gpt4fun-be.azuremicroservices.io/chamber/chat/messages';
     const userId = 1;
     const requestBody = {
         userId,
@@ -64,7 +64,7 @@ resetButton.addEventListener('click', resetHistory);
 async function resetHistory() {
     const userId = 1;
     clearAllTextBox();
-    const apiEndpoint = `http://gpt4fun-gpt4fun-be.azuremicroservices.io/chamber/chat/history/${userId}`;
+    const apiEndpoint = `https://gpt4fun-gpt4fun-be.azuremicroservices.io/chamber/chat/history/${userId}`;
     const response = await fetch(apiEndpoint, {
         method: 'DELETE'
     });
@@ -85,7 +85,7 @@ async function updateSystemMessage() {
 }
 async function updateSystemMessageApi(systemMessage) {
     const userId = 1;
-    const apiEndpoint = `http://gpt4fun-gpt4fun-be.azuremicroservices.io/chamber/chat/messages/${userId}`;
+    const apiEndpoint = `https://gpt4fun-gpt4fun-be.azuremicroservices.io/chamber/chat/messages/${userId}`;
     const requestBody = {
         systemMessage: systemMessage
     };
