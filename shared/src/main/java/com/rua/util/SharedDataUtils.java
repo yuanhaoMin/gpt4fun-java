@@ -16,8 +16,18 @@ public class SharedDataUtils {
     private SharedDataUtils() {
     }
 
-    public static <T> List<T> convertJsonToList(String json, Class<T> targetType) {
-        ObjectMapper mapper = new ObjectMapper();
+    public static String convertObjectToJson(final Object object) {
+        final ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.writeValueAsString(object);
+        } catch (JsonProcessingException e) {
+            log.error(LOG_PREFIX_SHARED + "Error converting object to json: {}", e.getMessage());
+            return "";
+        }
+    }
+
+    public static <T> List<T> parseJsonToList(final String json, final Class<T> targetType) {
+        final ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
         try {
             if (isNullOrEmpty(json)) {
@@ -30,13 +40,16 @@ public class SharedDataUtils {
         }
     }
 
-    public static String convertObjectToJson(Object object) {
-        ObjectMapper mapper = new ObjectMapper();
+    public static <T> T parseJsonToObject(final String json, final Class<T> targetType) {
+        final ObjectMapper mapper = new ObjectMapper();
         try {
-            return mapper.writeValueAsString(object);
+            if (isNullOrEmpty(json)) {
+                return null;
+            }
+            return mapper.readValue(json, targetType);
         } catch (JsonProcessingException e) {
-            log.error(LOG_PREFIX_SHARED + "Error converting object to json: {}", e.getMessage());
-            return "";
+            log.error(LOG_PREFIX_SHARED + "Error parsing json to object: {}", e.getMessage());
+            return null;
         }
     }
 

@@ -3,7 +3,8 @@ package com.rua.service;
 import com.rua.logic.DiscordChatLogic;
 import com.rua.model.request.DiscordCompleteChatRequestBo;
 import com.rua.model.request.OpenAIGPT35ChatMessage;
-import com.rua.model.response.OpenAIGPT35ChatResponseDto;
+import com.rua.model.request.OpenAIGPT35ChatRequestDto;
+import com.rua.model.response.OpenAIGPT35ChatWithoutStreamResponseDto;
 import com.rua.property.DiscordProperties;
 import com.rua.util.OpenAIGPT35Logic;
 import lombok.RequiredArgsConstructor;
@@ -12,8 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 import static com.rua.constant.DiscordConstants.*;
-import static com.rua.constant.OpenAIConstants.GPT35TURBO_ASSISTANT;
-import static com.rua.constant.OpenAIConstants.GPT35TURBO_USER;
+import static com.rua.constant.OpenAIConstants.*;
 
 @RequiredArgsConstructor
 @Service
@@ -32,7 +32,13 @@ public class DiscordChatService {
         final List<OpenAIGPT35ChatMessage> messages = discordChatLogic.retrieveHistoryMessages(guildChatLog);
         // Add user message for this time prompt
         messages.add(new OpenAIGPT35ChatMessage(GPT35TURBO_USER, request.userMessage()));
-        final var gptResponse = openAIClientService.chat(messages);
+        final var openAIGPT35ChatRequest = OpenAIGPT35ChatRequestDto.builder() //
+                .model(OPENAI_MODEL_GPT_35_TURBO) //
+                .messages(messages) //
+                .stream(false) //
+                .temperature(0.1) //
+                .build();
+        final var gptResponse = openAIClientService.chatWithoutStream(openAIGPT35ChatRequest);
         // Add gpt response for next time prompt
         messages.add(
                 new OpenAIGPT35ChatMessage(GPT35TURBO_ASSISTANT, gptResponse.choices().get(0).message().content()));
@@ -41,7 +47,7 @@ public class DiscordChatService {
         return botResponse;
     }
 
-    private String generateBotResponseAndHandleTokenLimit(final OpenAIGPT35ChatResponseDto gptResponse,
+    private String generateBotResponseAndHandleTokenLimit(final OpenAIGPT35ChatWithoutStreamResponseDto gptResponse,
                                                           final List<OpenAIGPT35ChatMessage> historyMessages,
                                                           final String userName) {
         final var botResponse = new StringBuilder();

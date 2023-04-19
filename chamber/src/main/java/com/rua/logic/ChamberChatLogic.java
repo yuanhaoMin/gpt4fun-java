@@ -38,7 +38,7 @@ public class ChamberChatLogic {
 
     @Nonnull
     public List<OpenAIGPT35ChatMessage> retrieveHistoryMessages(@Nonnull final ChamberUserChatLog userChatLog) {
-        final var historyMessages = convertJsonToList(userChatLog.getMessages(), OpenAIGPT35ChatMessage.class);
+        final var historyMessages = parseJsonToList(userChatLog.getMessages(), OpenAIGPT35ChatMessage.class);
         return historyMessages != null ? historyMessages : new ArrayList<>();
     }
 

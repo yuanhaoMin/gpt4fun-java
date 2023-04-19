@@ -12,6 +12,7 @@ import feign.FeignException;
 import feign.RetryableException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import static com.rua.constant.ChamberConstants.*;
@@ -25,7 +26,7 @@ public class ChamberChatController {
     private final ChamberChatService chamberChatService;
 
     // TODO validation, Exceeding limit error handling instead of 500
-    @PostMapping(value = "/messages")
+    @PostMapping(value = "/messages", produces = MediaType.APPLICATION_JSON_VALUE)
     public ChamberCompleteChatResponseDto completeChat(@RequestBody final ChamberCompleteChatRequestDto requestDto) {
         final var requestBo = ChamberCompleteChatRequestBo.builder() //
                 .userId(requestDto.userId()) //
@@ -51,7 +52,7 @@ public class ChamberChatController {
     }
 
     // TODO validation, return boolean and catch error
-    @DeleteMapping(value = "/history/{userId}", produces = "application/json")
+    @DeleteMapping(value = "/history/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ChamberResetChatHistoryResponseDto deleteHistory(@PathVariable final long userId) {
         final var responseMessage = chamberChatService.resetChatHistory(userId);
         return ChamberResetChatHistoryResponseDto.builder() //
@@ -60,7 +61,7 @@ public class ChamberChatController {
     }
 
     // TODO validation, return boolean and catch error
-    @PutMapping(value = "/messages/{userId}", produces = "application/json")
+    @PutMapping(value = "/messages/{userId}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ChamberUpdateSystemMessageResponseDto updateSystemMessage(@PathVariable final long userId,
                                                                      @RequestBody final ChamberUpdateSystemMessageRequestDto requestDto) {
         final var responseMessage = chamberChatService.updateSystemMessage(userId, requestDto.systemMessage());

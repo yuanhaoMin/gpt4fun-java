@@ -3,20 +3,25 @@ package com.rua.service;
 import com.rua.logic.ChamberChatLogic;
 import com.rua.model.request.ChamberCompleteChatRequestBo;
 import com.rua.model.request.OpenAIGPT35ChatMessage;
-import com.rua.model.response.OpenAIGPT35ChatResponseDto;
+import com.rua.model.request.OpenAIGPT35ChatRequestDto;
+import com.rua.model.response.OpenAIGPT35ChatWithStreamData;
+import com.rua.model.response.OpenAIGPT35ChatWithoutStreamResponseDto;
 import com.rua.property.ChamberProperties;
 import com.rua.util.OpenAIGPT35Logic;
+import com.rua.util.SharedFormatUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.rua.constant.ChamberConstants.*;
-import static com.rua.constant.OpenAIConstants.GPT35TURBO_ASSISTANT;
-import static com.rua.constant.OpenAIConstants.GPT35TURBO_USER;
+import static com.rua.constant.OpenAIConstants.*;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class ChamberChatService {
 
     private final OpenAIClientService openAIClientService;
@@ -32,13 +37,34 @@ public class ChamberChatService {
         final List<OpenAIGPT35ChatMessage> messages = chamberChatLogic.retrieveHistoryMessages(userChatLog);
         // Add user message for this time prompt
         messages.add(new OpenAIGPT35ChatMessage(GPT35TURBO_USER, request.userMessage()));
-        final var gptResponse = openAIClientService.chat(messages);
-        // Add gpt response for next time prompt
-        messages.add(
-                new OpenAIGPT35ChatMessage(GPT35TURBO_ASSISTANT, gptResponse.choices().get(0).message().content()));
-        final var processedResponse = generateResponseAndHandleTokenLimit(gptResponse, messages);
+        final var processedResponse = sendRequestAndCollectResponse(messages);
         chamberChatLogic.updateChamberUserChatLog(userChatLog, messages, request);
         return processedResponse;
+    }
+
+    private String sendRequestAndCollectResponse(final List<OpenAIGPT35ChatMessage> messages) {
+        final var startTime = System.currentTimeMillis();
+        final var openAIGPT35ChatRequest = OpenAIGPT35ChatRequestDto.builder() //
+                .model(OPENAI_MODEL_GPT_35_TURBO) //
+                .messages(messages) //
+                .stream(true) //
+                .temperature(0.1) //
+                .build();
+        final List<OpenAIGPT35ChatWithStreamData> responseChunks = openAIClientService.chatWithStream(
+                openAIGPT35ChatRequest);
+        final List<String> collectedResponseMessage = new ArrayList<>();
+        for (final var chunk : responseChunks) {
+            collectedResponseMessage.add(chunk.choices().get(0).delta().content());
+        }
+        final var fullReplyContent = String.join("", collectedResponseMessage);
+        final var endTime = System.currentTimeMillis();
+        final var executionTime = SharedFormatUtils.convertMillisToStringWithMaxTwoFractionDigits(
+                endTime - startTime);
+        log.info(LOG_PREFIX_TIME_CHAMBER + "GPT-35 Turbo chat execution time: {}s", executionTime);
+        // Add gpt response for next time prompt
+        messages.add(
+                new OpenAIGPT35ChatMessage(GPT35TURBO_ASSISTANT, fullReplyContent));
+        return fullReplyContent;
     }
 
     public String resetChatHistory(final long userId) {
@@ -51,7 +77,7 @@ public class ChamberChatService {
         return String.format(GPT_35_SET_SYSTEM_MESSAGE_SUCCESS, systemMessageContent);
     }
 
-    private String generateResponseAndHandleTokenLimit(final OpenAIGPT35ChatResponseDto gptResponse,
+    private String generateResponseAndHandleTokenLimit(final OpenAIGPT35ChatWithoutStreamResponseDto gptResponse,
                                                        final List<OpenAIGPT35ChatMessage> historyMessages) {
         final var processedResponse = new StringBuilder();
         // Next time prompt tokens = current total tokens + estimated next time prompt tokens
@@ -74,7 +100,6 @@ public class ChamberChatService {
                     purgedPromptTokens, //
                     maxPromptTokens));
         }
-        processedResponse.append(BOT_RESPONSE_PREFIX);
         processedResponse.append(gptResponse.choices().get(0).message().content());
         return processedResponse.toString();
     }

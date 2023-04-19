@@ -38,7 +38,7 @@ public class DiscordChatLogic {
 
     @Nonnull
     public List<OpenAIGPT35ChatMessage> retrieveHistoryMessages(@Nonnull final DiscordGuildChatLog guildChatLog) {
-        final var historyMessages = convertJsonToList(guildChatLog.getMessages(), OpenAIGPT35ChatMessage.class);
+        final var historyMessages = parseJsonToList(guildChatLog.getMessages(), OpenAIGPT35ChatMessage.class);
         return historyMessages != null ? historyMessages : new ArrayList<>();
     }
 
