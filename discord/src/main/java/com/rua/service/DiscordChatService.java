@@ -1,9 +1,10 @@
 package com.rua.service;
 
 import com.rua.logic.DiscordChatLogic;
-import com.rua.model.DiscordCompleteChatRequest;
+import com.rua.model.request.DiscordCompleteChatRequestBo;
 import com.rua.model.request.OpenAIGPT35ChatMessage;
-import com.rua.model.response.OpenAIGPT35ChatResponse;
+import com.rua.model.request.OpenAIGPT35ChatRequestDto;
+import com.rua.model.response.OpenAIGPT35ChatWithoutStreamResponseDto;
 import com.rua.property.DiscordProperties;
 import com.rua.util.OpenAIGPT35Logic;
 import lombok.RequiredArgsConstructor;
@@ -12,38 +13,43 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 import static com.rua.constant.DiscordConstants.*;
-import static com.rua.constant.OpenAIConstants.GPT35TURBO_ASSISTANT;
-import static com.rua.constant.OpenAIConstants.GPT35TURBO_USER;
+import static com.rua.constant.OpenAIConstants.*;
 
 @RequiredArgsConstructor
 @Service
 public class DiscordChatService {
 
-    private final DiscordChatLogic discordChatLogic;
-
-    private final DiscordProperties discordProperties;
-
     private final OpenAIClientService openAIClientService;
+
+    private final DiscordChatLogic discordChatLogic;
 
     private final OpenAIGPT35Logic openAIGPT35Logic;
 
-    public String gpt35completeChat(final DiscordCompleteChatRequest request) {
+    private final DiscordProperties discordProperties;
+
+    public String gpt35completeChat(final DiscordCompleteChatRequestBo request) {
         var guildChatLog = discordChatLogic.findByGuildId(request.guildId());
         final List<OpenAIGPT35ChatMessage> messages = discordChatLogic.retrieveHistoryMessages(guildChatLog);
         // Add user message for this time prompt
         messages.add(new OpenAIGPT35ChatMessage(GPT35TURBO_USER, request.userMessage()));
-        final var gptResponse = openAIClientService.chat(messages);
+        final var openAIGPT35ChatRequest = OpenAIGPT35ChatRequestDto.builder() //
+                .model(OPENAI_MODEL_GPT_35_TURBO) //
+                .messages(messages) //
+                .hasStream(false) //
+                .temperature(0.4) //
+                .build();
+        final var gptResponse = openAIClientService.gpt35ChatWithoutStream(openAIGPT35ChatRequest);
         // Add gpt response for next time prompt
         messages.add(
                 new OpenAIGPT35ChatMessage(GPT35TURBO_ASSISTANT, gptResponse.choices().get(0).message().content()));
-        final var botResponse = generateBotResponseAndHandleTokenLimit(gptResponse, messages, request.userName());
+        final var botResponse = generateBotResponseAndHandleTokenLimit(gptResponse, messages, request.username());
         discordChatLogic.updateDiscordGuildChatLog(guildChatLog, messages, request);
         return botResponse;
     }
 
-    private String generateBotResponseAndHandleTokenLimit(final OpenAIGPT35ChatResponse gptResponse,
+    private String generateBotResponseAndHandleTokenLimit(final OpenAIGPT35ChatWithoutStreamResponseDto gptResponse,
                                                           final List<OpenAIGPT35ChatMessage> historyMessages,
-                                                          String userName) {
+                                                          final String username) {
         final var botResponse = new StringBuilder();
         // Next time prompt tokens = current total tokens + estimated next time prompt tokens
         final var estimatedNextTimePromptTokens = gptResponse.usage()
@@ -65,7 +71,7 @@ public class DiscordChatService {
                     purgedPromptTokens, //
                     maxPromptTokens));
         }
-        botResponse.append(String.format(BOT_RESPONSE_PREFIX, userName));
+        botResponse.append(String.format(BOT_RESPONSE_PREFIX, username));
         botResponse.append(gptResponse.choices().get(0).message().content());
         return botResponse.toString();
     }

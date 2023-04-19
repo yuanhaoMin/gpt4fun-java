@@ -2,7 +2,7 @@ package com.rua.logic.handler;
 
 import com.rua.logic.DiscordChatLogic;
 import com.rua.logic.DiscordPostConstructGateWayClient;
-import com.rua.model.DiscordCompleteChatRequest;
+import com.rua.model.request.DiscordCompleteChatRequestBo;
 import com.rua.property.DiscordProperties;
 import com.rua.service.DiscordChatService;
 import com.rua.util.SharedFormatUtils;
@@ -41,37 +41,38 @@ public class DiscordMessageCreateHandler implements DiscordEventHandler<MessageC
 
     /**
      * This method is presented in an imperative style and lacks a signal for the invocation of
-     * {@link DiscordChatService#gpt35completeChat(DiscordCompleteChatRequest)}. As a result, any errors that may occur
+     * {@link DiscordChatService#gpt35completeChat(DiscordCompleteChatRequestBo)}. As a result, any errors that may occur
      * will not be caught by the onErrorResume function in {@link DiscordPostConstructGateWayClient#init()}.
      * Therefore, a traditional try-catch block is used to catch and log any errors that may occur.
      */
     @Override
     public Mono<Void> execute(final MessageCreateEvent event) {
-        final var startTime = System.currentTimeMillis();
+        final var startTimeMillis = System.currentTimeMillis();
         final var message = event.getMessage();
         final boolean isNotBot = message.getAuthor().map(user -> !user.isBot()).orElse(false);
-        final var isMentioned = message.getUserMentionIds().contains(Snowflake.of(discordProperties.applicationId()));
+        final boolean isMentioned = message.getUserMentionIds()
+                .contains(Snowflake.of(discordProperties.applicationId()));
         if (isNotBot && isMentioned) {
             final var guildId = message.getGuildId().map(Snowflake::asString).orElse("");
             final var userMessage = getMessageContentWithoutMention(message.getContent());
-            final var userName = message.getAuthor().map(User::getUsername).orElse("");
-            final var request = DiscordCompleteChatRequest.builder() //
+            final var username = message.getAuthor().map(User::getUsername).orElse("");
+            final var request = DiscordCompleteChatRequestBo.builder() //
                     .guildId(guildId) //
                     .lastChatTime(LocalDateTime.now(Clock.system(ZoneId.of("Europe/Paris")))) //
-                    .userName(userName) //
+                    .username(username) //
                     .userMessage(userMessage) //
                     .build();
             try {
                 final var botResponse = discordChatService.gpt35completeChat(request);
-                final var endTime = System.currentTimeMillis();
-                final var executionTime = SharedFormatUtils.convertMillisToStringWithMaxTwoFractionDigits(
-                        endTime - startTime);
-                log.info(LOG_PREFIX_DISCORD + "GPT3.5 chat completed in {}s in guild: {}", executionTime, guildId);
+                final var endTimeMillis = System.currentTimeMillis();
+                final var executionTimeSeconds = SharedFormatUtils.convertMillisToStringWithMaxTwoFractionDigits(
+                        endTimeMillis - startTimeMillis);
+                log.info(LOG_PREFIX_DISCORD + "GPT3.5 chat completed in {}s in guild: {}", executionTimeSeconds,
+                        guildId);
                 return sendMessageToChannel(message, botResponse);
             } catch (FeignException.BadRequest e) {
                 final var errorLog = e.toString();
-                log.error(LOG_PREFIX_DISCORD + "Unable to complete GPT3.5 chat due to bad request: {}",
-                        errorLog);
+                log.error(LOG_PREFIX_DISCORD + "Unable to complete GPT3.5 chat due to bad request: {}", errorLog);
                 discordChatLogic.resetChatHistory(guildId);
                 return sendMessageToChannel(message, GPT_35_CHAT_BAD_REQUEST);
             } catch (RetryableException e) {
@@ -100,7 +101,7 @@ public class DiscordMessageCreateHandler implements DiscordEventHandler<MessageC
         return messageContent;
     }
 
-    private Mono<Void> sendMessageToChannel(Message message, String botResponse) {
+    private Mono<Void> sendMessageToChannel(final Message message, final String botResponse) {
         return message.getChannel() //
                 .flatMap(channel -> channel.createMessage(botResponse) //
                         .onErrorResume(e -> {

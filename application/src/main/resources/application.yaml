@@ -18,15 +18,13 @@ spring:
     username: rua
     url: jdbc:sqlserver://;serverName=gpt4fun.database.windows.net;databaseName=gpt4fun
     password: Myh.1059331302
-  sql:
-    init:
-      mode: always # Initialize the database, do not use deprecated spring.datasource.initialization-mode
-      schema-locations: classpath:sql/schema.sql
   jpa:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.SQLServerDialect
     hibernate:
       ddl-auto: none # Disable Hibernate automatic schema creation
-
-#  az spring app deploy --resource-group gpt4fun --service gpt4fun --name gpt4fun-be --artifact-path .\application\build\libs\application-1.0-SNAPSHOT.jar
+  sql:
+    init:
+      mode: always # Initialize the database, do not use deprecated spring.datasource.initialization-mode
+      schema-locations: classpath:sql/schema.sql

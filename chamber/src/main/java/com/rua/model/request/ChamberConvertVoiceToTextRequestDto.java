@@ -4,5 +4,5 @@ import lombok.Builder;
 import org.springframework.web.multipart.MultipartFile;
 
 @Builder
-public record OpenAISpeechToTextRequest(String model, MultipartFile file) {
+public record ChamberConvertVoiceToTextRequestDto(MultipartFile file) {
 }
