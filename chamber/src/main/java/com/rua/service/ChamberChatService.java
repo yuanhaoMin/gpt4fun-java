@@ -9,6 +9,8 @@ import com.rua.model.response.OpenAIGPT35ChatWithoutStreamResponseDto;
 import com.rua.property.ChamberProperties;
 import com.rua.util.OpenAIGPT35Logic;
 import com.rua.util.SharedFormatUtils;
+import feign.FeignException;
+import feign.RetryableException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,48 +35,61 @@ public class ChamberChatService {
     private final ChamberProperties chamberProperties;
 
     public String gpt35completeChat(final ChamberCompleteChatRequestBo request) {
-        var userChatLog = chamberChatLogic.findByUserId(request.userId());
+        var userChatLog = chamberChatLogic.findUserChatLogByUserId(request.username());
         final List<OpenAIGPT35ChatMessage> messages = chamberChatLogic.retrieveHistoryMessages(userChatLog);
         // Add user message for this time prompt
         messages.add(new OpenAIGPT35ChatMessage(GPT35TURBO_USER, request.userMessage()));
-        final var processedResponse = sendRequestAndCollectResponse(messages);
+        final var processedResponse = sendChatRequestToGPT35Turbo(request, messages);
         chamberChatLogic.updateChamberUserChatLog(userChatLog, messages, request);
         return processedResponse;
     }
 
-    private String sendRequestAndCollectResponse(final List<OpenAIGPT35ChatMessage> messages) {
-        final var startTime = System.currentTimeMillis();
-        final var openAIGPT35ChatRequest = OpenAIGPT35ChatRequestDto.builder() //
-                .model(OPENAI_MODEL_GPT_35_TURBO) //
-                .messages(messages) //
-                .stream(true) //
-                .temperature(0.1) //
-                .build();
-        final List<OpenAIGPT35ChatWithStreamData> responseChunks = openAIClientService.chatWithStream(
-                openAIGPT35ChatRequest);
-        final List<String> collectedResponseMessage = new ArrayList<>();
-        for (final var chunk : responseChunks) {
-            collectedResponseMessage.add(chunk.choices().get(0).delta().content());
-        }
-        final var fullReplyContent = String.join("", collectedResponseMessage);
-        final var endTime = System.currentTimeMillis();
-        final var executionTime = SharedFormatUtils.convertMillisToStringWithMaxTwoFractionDigits(
-                endTime - startTime);
-        log.info(LOG_PREFIX_TIME_CHAMBER + "GPT-35 Turbo chat execution time: {}s", executionTime);
-        // Add gpt response for next time prompt
-        messages.add(
-                new OpenAIGPT35ChatMessage(GPT35TURBO_ASSISTANT, fullReplyContent));
-        return fullReplyContent;
-    }
-
-    public String resetChatHistory(final long userId) {
-        chamberChatLogic.resetChatHistory(userId);
+    public String resetChatHistory(final String username) {
+        chamberChatLogic.resetChatHistory(username);
         return GPT_35_RESET_CHAT_HISTORY_SUCCESS;
     }
 
-    public String updateSystemMessage(final long userId, final String systemMessageContent) {
-        chamberChatLogic.updateSystemMessageAndPersist(userId, systemMessageContent);
+    public String updateSystemMessage(final String username, final String systemMessageContent) {
+        chamberChatLogic.updateSystemMessageAndPersist(username, systemMessageContent);
         return String.format(GPT_35_SET_SYSTEM_MESSAGE_SUCCESS, systemMessageContent);
+    }
+
+    private String sendChatRequestToGPT35Turbo(final ChamberCompleteChatRequestBo request,
+                                               final List<OpenAIGPT35ChatMessage> messages) {
+        final var startTimeMillis = System.currentTimeMillis();
+        final var openAIGPT35ChatRequest = OpenAIGPT35ChatRequestDto.builder() //
+                .model(OPENAI_MODEL_GPT_35_TURBO) //
+                .messages(messages) //
+                .hasStream(true) //
+                .temperature(request.temperature()) //
+                .build();
+        final List<String> collectedResponseMessage = new ArrayList<>();
+        try {
+            final List<OpenAIGPT35ChatWithStreamData> responseChunks = openAIClientService.gpt35ChatWithStream(
+                    openAIGPT35ChatRequest);
+            for (final var chunk : responseChunks) {
+                collectedResponseMessage.add(chunk.choices().get(0).delta().content());
+            }
+        } catch (FeignException.BadRequest e) {
+            final var errorLog = e.toString();
+            log.error(LOG_PREFIX_TIME_CHAMBER + "Unable to complete GPT3.5 chat due to bad request: {}", errorLog);
+            resetChatHistory(request.username());
+            return GPT_35_CHAT_BAD_REQUEST;
+        } catch (RetryableException e) {
+            final var errorLog = e.toString();
+            log.error(LOG_PREFIX_TIME_CHAMBER + "Unable to complete GPT3.5 chat due to feign retryable error: {}",
+                    errorLog);
+            return GPT_35_CHAT_READ_TIME_OUT;
+        }
+        final var responseContent = String.join("", collectedResponseMessage);
+        final var endTimeMillis = System.currentTimeMillis();
+        final var executionTimeSeconds = SharedFormatUtils.convertMillisToStringWithMaxTwoFractionDigits(
+                endTimeMillis - startTimeMillis);
+        log.info(LOG_PREFIX_TIME_CHAMBER + "GPT3.5 chat completed in {}s for user: {}", executionTimeSeconds,
+                request.username());
+        // Add gpt response for next time prompt
+        messages.add(new OpenAIGPT35ChatMessage(GPT35TURBO_ASSISTANT, responseContent));
+        return responseContent;
     }
 
     private String generateResponseAndHandleTokenLimit(final OpenAIGPT35ChatWithoutStreamResponseDto gptResponse,

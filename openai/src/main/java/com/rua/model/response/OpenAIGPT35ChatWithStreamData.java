@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-public record OpenAIGPT35ChatWithStreamData(String id, String object, String model, String created,
+public record OpenAIGPT35ChatWithStreamData(@JsonProperty("id") String id, @JsonProperty("object") String object,
+                                            @JsonProperty("model") String model,
+                                            @JsonProperty("created") String created,
                                             @JsonProperty("choices") List<OpenAIGPT35ChatWithStreamChoice> choices) {
 }

@@ -35,21 +35,21 @@ public class DiscordChatService {
         final var openAIGPT35ChatRequest = OpenAIGPT35ChatRequestDto.builder() //
                 .model(OPENAI_MODEL_GPT_35_TURBO) //
                 .messages(messages) //
-                .stream(false) //
-                .temperature(0.1) //
+                .hasStream(false) //
+                .temperature(0.4) //
                 .build();
-        final var gptResponse = openAIClientService.chatWithoutStream(openAIGPT35ChatRequest);
+        final var gptResponse = openAIClientService.gpt35ChatWithoutStream(openAIGPT35ChatRequest);
         // Add gpt response for next time prompt
         messages.add(
                 new OpenAIGPT35ChatMessage(GPT35TURBO_ASSISTANT, gptResponse.choices().get(0).message().content()));
-        final var botResponse = generateBotResponseAndHandleTokenLimit(gptResponse, messages, request.userName());
+        final var botResponse = generateBotResponseAndHandleTokenLimit(gptResponse, messages, request.username());
         discordChatLogic.updateDiscordGuildChatLog(guildChatLog, messages, request);
         return botResponse;
     }
 
     private String generateBotResponseAndHandleTokenLimit(final OpenAIGPT35ChatWithoutStreamResponseDto gptResponse,
                                                           final List<OpenAIGPT35ChatMessage> historyMessages,
-                                                          final String userName) {
+                                                          final String username) {
         final var botResponse = new StringBuilder();
         // Next time prompt tokens = current total tokens + estimated next time prompt tokens
         final var estimatedNextTimePromptTokens = gptResponse.usage()
@@ -71,7 +71,7 @@ public class DiscordChatService {
                     purgedPromptTokens, //
                     maxPromptTokens));
         }
-        botResponse.append(String.format(BOT_RESPONSE_PREFIX, userName));
+        botResponse.append(String.format(BOT_RESPONSE_PREFIX, username));
         botResponse.append(gptResponse.choices().get(0).message().content());
         return botResponse.toString();
     }

@@ -1,4 +1,6 @@
 package com.rua.model.response;
 
-public record OpenAIWhisperTranscriptionResponseDto(String text) {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public record OpenAIWhisperTranscriptionResponseDto(@JsonProperty("text") String text) {
 }

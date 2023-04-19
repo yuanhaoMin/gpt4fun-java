@@ -18,7 +18,6 @@ public class ChamberSpeechController {
 
     private final ChamberSpeechService chamberSpeechService;
 
-    // TODO validation
     @PostMapping(value = "/speech-to-text", //
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE, //
             produces = MediaType.APPLICATION_JSON_VALUE)

@@ -28,8 +28,3 @@ spring:
     init:
       mode: always # Initialize the database, do not use deprecated spring.datasource.initialization-mode
       schema-locations: classpath:sql/schema.sql
-  web:
-    resources:
-      static-locations:
-        static-locations[0]: "file:src/main/resources/static/"
-        static-locations[1]: "classpath:/static/"

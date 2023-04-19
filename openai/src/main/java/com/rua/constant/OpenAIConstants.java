@@ -6,7 +6,7 @@ public class OpenAIConstants {
     }
 
     // Log
-    public static final String LOG_PREFIX_GPT = "OpenAI -- ";
+    public static final String LOG_PREFIX_OPENAI = "OpenAI -- ";
 
     // Url
     public static final String OPENAI_API_BASE_URL = "https://api.openai.com/v1";

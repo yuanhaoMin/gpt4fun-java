@@ -48,7 +48,7 @@ public class DiscordChatLogic {
         guildChatLog.setGuildId(request.guildId());
         guildChatLog.setMessages(convertObjectToJson(historyMessages));
         guildChatLog.setLastChatTime(toStringNullSafe(request.lastChatTime()));
-        guildChatLog.setLastChatUserName(request.userName());
+        guildChatLog.setLastChatUsername(request.username());
         discordGuildChatLogRepository.save(guildChatLog);
     }
 

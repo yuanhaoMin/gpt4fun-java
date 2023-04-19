@@ -7,6 +7,7 @@ import com.rua.repository.ChamberUserChatLogRepository;
 import com.rua.util.OpenAIGPT35Logic;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -18,18 +19,22 @@ import static com.rua.util.SharedDataUtils.*;
 @RequiredArgsConstructor
 public class ChamberChatLogic {
 
+    private final ChamberUserLogic chamberUserLogic;
+
     private final ChamberUserChatLogRepository chamberUserChatLogRepository;
 
     private final OpenAIGPT35Logic openAIGPT35Logic;
 
     @Nonnull
-    public ChamberUserChatLog findByUserId(final Long userId) {
-        final var userChatLog = chamberUserChatLogRepository.findByUserId(userId);
+    public ChamberUserChatLog findUserChatLogByUserId(final String username) throws UsernameNotFoundException {
+        final var user = chamberUserLogic.findUserByUsername(username);
+        final var userChatLog = chamberUserChatLogRepository.findByUserId(user.getId());
         return userChatLog != null ? userChatLog : new ChamberUserChatLog();
     }
 
-    public void resetChatHistory(final Long userId) {
-        final var userChatLog = chamberUserChatLogRepository.findByUserId(userId);
+    public void resetChatHistory(final String username) throws UsernameNotFoundException {
+        final var user = chamberUserLogic.findUserByUsername(username);
+        final var userChatLog = chamberUserChatLogRepository.findByUserId(user.getId());
         if (userChatLog != null) {
             userChatLog.setMessages("");
             chamberUserChatLogRepository.save(userChatLog);
@@ -45,16 +50,18 @@ public class ChamberChatLogic {
     public void updateChamberUserChatLog(@Nonnull final ChamberUserChatLog userChatLog,
                                          final List<OpenAIGPT35ChatMessage> historyMessages,
                                          final ChamberCompleteChatRequestBo request) {
-        userChatLog.setUserId(request.userId());
         userChatLog.setMessages(convertObjectToJson(historyMessages));
         userChatLog.setLastChatTime(toStringNullSafe(request.lastChatTime()));
         chamberUserChatLogRepository.save(userChatLog);
     }
 
-    public void updateSystemMessageAndPersist(final Long userId, @Nonnull final String systemMessageContent) {
-        var userChatLog = chamberUserChatLogRepository.findByUserId(userId);
+    public void updateSystemMessageAndPersist(final String username, @Nonnull final String systemMessageContent)
+            throws UsernameNotFoundException {
+        final var user = chamberUserLogic.findUserByUsername(username);
+        var userChatLog = chamberUserChatLogRepository.findByUserId(user.getId());
         if (userChatLog == null) {
             userChatLog = new ChamberUserChatLog();
+            userChatLog.setUser(user);
         }
         final var historyMessages = retrieveHistoryMessages(userChatLog);
         openAIGPT35Logic.updateSystemMessage(historyMessages, systemMessageContent);

@@ -47,7 +47,7 @@ public class DiscordMessageCreateHandler implements DiscordEventHandler<MessageC
      */
     @Override
     public Mono<Void> execute(final MessageCreateEvent event) {
-        final var startTime = System.currentTimeMillis();
+        final var startTimeMillis = System.currentTimeMillis();
         final var message = event.getMessage();
         final boolean isNotBot = message.getAuthor().map(user -> !user.isBot()).orElse(false);
         final boolean isMentioned = message.getUserMentionIds()
@@ -55,19 +55,20 @@ public class DiscordMessageCreateHandler implements DiscordEventHandler<MessageC
         if (isNotBot && isMentioned) {
             final var guildId = message.getGuildId().map(Snowflake::asString).orElse("");
             final var userMessage = getMessageContentWithoutMention(message.getContent());
-            final var userName = message.getAuthor().map(User::getUsername).orElse("");
+            final var username = message.getAuthor().map(User::getUsername).orElse("");
             final var request = DiscordCompleteChatRequestBo.builder() //
                     .guildId(guildId) //
                     .lastChatTime(LocalDateTime.now(Clock.system(ZoneId.of("Europe/Paris")))) //
-                    .userName(userName) //
+                    .username(username) //
                     .userMessage(userMessage) //
                     .build();
             try {
                 final var botResponse = discordChatService.gpt35completeChat(request);
-                final var endTime = System.currentTimeMillis();
-                final var executionTime = SharedFormatUtils.convertMillisToStringWithMaxTwoFractionDigits(
-                        endTime - startTime);
-                log.info(LOG_PREFIX_DISCORD + "GPT3.5 chat completed in {}s in guild: {}", executionTime, guildId);
+                final var endTimeMillis = System.currentTimeMillis();
+                final var executionTimeSeconds = SharedFormatUtils.convertMillisToStringWithMaxTwoFractionDigits(
+                        endTimeMillis - startTimeMillis);
+                log.info(LOG_PREFIX_DISCORD + "GPT3.5 chat completed in {}s in guild: {}", executionTimeSeconds,
+                        guildId);
                 return sendMessageToChannel(message, botResponse);
             } catch (FeignException.BadRequest e) {
                 final var errorLog = e.toString();

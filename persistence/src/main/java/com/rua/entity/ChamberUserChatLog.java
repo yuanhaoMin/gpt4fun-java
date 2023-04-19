@@ -9,15 +9,16 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "user_chat_log")
+@Table(name = "chamber_user_chat_log")
 public class ChamberUserChatLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "user_id", unique = true)
-    private Long userId;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private ChamberUser user;
 
     @Column(name = "messages", length = 100000)
     private String messages;

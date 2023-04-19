@@ -19,7 +19,7 @@ public class ChamberSpeechService {
                 .model(OPENAI_MODEL_WHISPER_1) //
                 .file(request.file()) //
                 .build();
-        return openAIClientService.createTranscription(openAIRequest);
+        return openAIClientService.whisperCreateTranscription(openAIRequest);
     }
 
 }

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static com.rua.constant.OpenAIConstants.LOG_PREFIX_OPENAI;
 import static com.rua.util.SharedDataUtils.parseJsonToObject;
 
 @RequiredArgsConstructor
@@ -21,24 +22,31 @@ public class OpenAIClientService {
 
     private final OpenAIClient openAIClient;
 
-    public List<OpenAIGPT35ChatWithStreamData> chatWithStream(final OpenAIGPT35ChatRequestDto requestDto) {
-        final var plainText = openAIClient.chatWithStream(requestDto);
-        return parseData(plainText);
+    public List<OpenAIGPT35ChatWithStreamData> gpt35ChatWithStream(final OpenAIGPT35ChatRequestDto request) {
+        if (!request.hasStream()) {
+            throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = true");
+        }
+        final var plainText = openAIClient.chatWithStream(request);
+        return extractChatData(plainText);
     }
 
-    public OpenAIGPT35ChatWithoutStreamResponseDto chatWithoutStream(final OpenAIGPT35ChatRequestDto requestDto) {
-        return openAIClient.chatWithoutStream(requestDto);
+    public OpenAIGPT35ChatWithoutStreamResponseDto gpt35ChatWithoutStream(final OpenAIGPT35ChatRequestDto request) {
+        if (request.hasStream()) {
+            throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = false");
+        }
+        return openAIClient.chatWithoutStream(request);
     }
 
-    public OpenAIWhisperTranscriptionResponseDto createTranscription(final OpenAISpeechToTextRequestDto request) {
+    public OpenAIWhisperTranscriptionResponseDto whisperCreateTranscription(
+            final OpenAISpeechToTextRequestDto request) {
         final var model = request.model();
         final var audioFile = request.file();
         return openAIClient.createTranscription(model, audioFile);
     }
 
-    private List<OpenAIGPT35ChatWithStreamData> parseData(final String input) {
+    private List<OpenAIGPT35ChatWithStreamData> extractChatData(final String input) {
         final List<OpenAIGPT35ChatWithStreamData> dataList = new ArrayList<>();
-        final var patternString = "data: (\\{.*?\"choices\":\\[\\{.*?\\}\\]\\})";
+        final var patternString = "data: (\\{.*?\"choices\":\\[\\{.*?}]})";
         final var pattern = Pattern.compile(patternString);
         final var matcher = pattern.matcher(input);
         while (matcher.find()) {

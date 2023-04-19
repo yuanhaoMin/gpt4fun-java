@@ -9,7 +9,7 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "guild_chat_log")
+@Table(name = "discord_guild_chat_log")
 public class DiscordGuildChatLog {
 
     @Id
@@ -26,6 +26,6 @@ public class DiscordGuildChatLog {
     private String lastChatTime;
 
     @Column(name = "last_chat_user_name")
-    private String lastChatUserName;
+    private String lastChatUsername;
 
 }
