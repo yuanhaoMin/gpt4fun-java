@@ -16,7 +16,7 @@ public class ChamberUserDetailsService implements UserDetailsService {
     private final ChamberUserLogic chamberUserLogic;
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
         ChamberUser chamberUser = chamberUserLogic.findByUsername(username);
         return new ChamberUserPrincipal(chamberUser);
     }

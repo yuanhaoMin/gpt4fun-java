@@ -13,7 +13,9 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.rua.util.SharedDataUtils.*;
+import static com.rua.util.SharedDataUtils.convertObjectToJson;
+import static com.rua.util.SharedDataUtils.parseJsonToList;
+import static com.rua.util.SharedFormatUtils.getCurrentTimeInParis;
 
 @Component
 @RequiredArgsConstructor
@@ -50,9 +52,13 @@ public class ChamberChatLogic {
     public void updateChamberUserChatLog(@Nonnull final ChamberUserChatLog userChatLog,
                                          final List<OpenAIGPT35ChatMessage> historyMessages,
                                          final ChamberCompleteChatRequestBo request) {
+        userChatLog.setLastChatTime(getCurrentTimeInParis());
         userChatLog.setMessages(convertObjectToJson(historyMessages));
+        // First time user chat
+        if (userChatLog.getUser() == null) {
+            userChatLog.setUser(chamberUserLogic.findByUsername(request.username()));
+        }
         // TODO count request length, maybe a map of localdatetime and count
-        userChatLog.setLastChatTime(toStringNullSafe(request.lastChatTime()));
         chamberUserChatLogRepository.save(userChatLog);
     }
 

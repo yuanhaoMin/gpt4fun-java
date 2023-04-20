@@ -2,9 +2,9 @@ package com.rua.controller;
 
 import com.rua.ChamberUserPrincipal;
 import com.rua.constant.ChamberControllerConstants;
-import com.rua.logic.ChamberUserLogic;
 import com.rua.model.request.ChamberUserLoginRequestDto;
 import com.rua.model.request.ChamberUserRegisterRequestDto;
+import com.rua.service.ChamberUserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -19,16 +19,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ChamberUserController {
 
-    private final ChamberUserLogic chamberUserLogic;
+    private final ChamberUserService chamberUserService;
 
     @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
     public ChamberUserPrincipal login(@Valid @RequestBody final ChamberUserLoginRequestDto request) {
-        return chamberUserLogic.authenticateUser(request.username(), request.password());
+        return chamberUserService.login(request.username(), request.password());
     }
 
     @PostMapping(value = "/register", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> register(@Valid @RequestBody final ChamberUserRegisterRequestDto request) {
-        chamberUserLogic.createUser(request.username(), request.password());
+        chamberUserService.register(request.username(), request.password());
         return ResponseEntity.ok("User created");
     }
 

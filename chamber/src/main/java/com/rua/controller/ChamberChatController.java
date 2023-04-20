@@ -14,10 +14,6 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Clock;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-
 @RequestMapping(value = ChamberControllerConstants.CHAMBER_CHAT_CONTROLLER_PATH)
 @RequiredArgsConstructor
 @RestController
@@ -29,7 +25,6 @@ public class ChamberChatController {
     public ChamberCompleteChatResponseDto completeChat(final Authentication authentication,
                                                        @Valid @RequestBody final ChamberCompleteChatRequestDto requestDto) {
         final var requestBo = ChamberCompleteChatRequestBo.builder() //
-                .lastChatTime(LocalDateTime.now(Clock.system(ZoneId.of("Europe/Paris")))) //
                 .temperature(requestDto.temperature()) //
                 .username(authentication.getName()) //
                 .userMessage(requestDto.userMessage()) //

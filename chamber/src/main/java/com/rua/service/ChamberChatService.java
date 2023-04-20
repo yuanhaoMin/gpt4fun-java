@@ -36,6 +36,8 @@ public class ChamberChatService {
             final var responseMessage = sendChatRequestToGPT35Turbo(request, messages);
             // Put in try catch to prevent the chat history from being updated if the request fails
             chamberChatLogic.updateChamberUserChatLog(userChatLog, messages, request);
+            log.info(LOG_PREFIX_TIME_CHAMBER + "GPT3.5 chat completed for user: {} with temperature = {}",
+                    request.username(), request.temperature());
             return responseMessage;
         } catch (FeignException.BadRequest e) {
             final var errorLog = e.toString();
@@ -52,11 +54,13 @@ public class ChamberChatService {
 
     public String resetChatHistory(final String username) {
         chamberChatLogic.resetChatHistory(username);
+        log.info(LOG_PREFIX_TIME_CHAMBER + "Chat history reset for user: {}", username);
         return GPT_35_RESET_CHAT_HISTORY_SUCCESS;
     }
 
     public String updateSystemMessage(final String username, final String systemMessageContent) {
         chamberChatLogic.updateSystemMessageAndPersist(username, systemMessageContent);
+        log.info(LOG_PREFIX_TIME_CHAMBER + "System message updated for user: {}", username);
         return String.format(GPT_35_SET_SYSTEM_MESSAGE_SUCCESS, systemMessageContent);
     }
 
@@ -76,13 +80,13 @@ public class ChamberChatService {
             collectedResponseMessage.add(chunk.choices().get(0).delta().content());
         }
         final var responseContent = String.join("", collectedResponseMessage);
+        // Add gpt response for next time prompt
+        messages.add(new OpenAIGPT35ChatMessage(GPT35TURBO_ASSISTANT, responseContent));
         final var endTimeMillis = System.currentTimeMillis();
         final var executionTimeSeconds = SharedFormatUtils.convertMillisToStringWithMaxTwoFractionDigits(
                 endTimeMillis - startTimeMillis);
-        log.info(LOG_PREFIX_TIME_CHAMBER + "GPT3.5 chat completed in {}s for user: {}", executionTimeSeconds,
+        log.info(LOG_PREFIX_TIME_CHAMBER + "GPT3.5 response received in {}s for user: {}", executionTimeSeconds,
                 request.username());
-        // Add gpt response for next time prompt
-        messages.add(new OpenAIGPT35ChatMessage(GPT35TURBO_ASSISTANT, responseContent));
         return responseContent;
     }
 
