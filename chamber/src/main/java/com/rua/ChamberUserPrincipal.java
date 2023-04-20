@@ -1,4 +1,4 @@
-package com.rua.model;
+package com.rua;
 
 import com.rua.entity.ChamberUser;
 import lombok.RequiredArgsConstructor;

@@ -27,13 +27,13 @@ public class ChamberChatLogic {
 
     @Nonnull
     public ChamberUserChatLog findUserChatLogByUserId(final String username) throws UsernameNotFoundException {
-        final var user = chamberUserLogic.findUserByUsername(username);
+        final var user = chamberUserLogic.findByUsername(username);
         final var userChatLog = chamberUserChatLogRepository.findByUserId(user.getId());
         return userChatLog != null ? userChatLog : new ChamberUserChatLog();
     }
 
     public void resetChatHistory(final String username) throws UsernameNotFoundException {
-        final var user = chamberUserLogic.findUserByUsername(username);
+        final var user = chamberUserLogic.findByUsername(username);
         final var userChatLog = chamberUserChatLogRepository.findByUserId(user.getId());
         if (userChatLog != null) {
             userChatLog.setMessages("");
@@ -51,13 +51,14 @@ public class ChamberChatLogic {
                                          final List<OpenAIGPT35ChatMessage> historyMessages,
                                          final ChamberCompleteChatRequestBo request) {
         userChatLog.setMessages(convertObjectToJson(historyMessages));
+        // TODO count request length, maybe a map of localdatetime and count
         userChatLog.setLastChatTime(toStringNullSafe(request.lastChatTime()));
         chamberUserChatLogRepository.save(userChatLog);
     }
 
     public void updateSystemMessageAndPersist(final String username, @Nonnull final String systemMessageContent)
             throws UsernameNotFoundException {
-        final var user = chamberUserLogic.findUserByUsername(username);
+        final var user = chamberUserLogic.findByUsername(username);
         var userChatLog = chamberUserChatLogRepository.findByUserId(user.getId());
         if (userChatLog == null) {
             userChatLog = new ChamberUserChatLog();

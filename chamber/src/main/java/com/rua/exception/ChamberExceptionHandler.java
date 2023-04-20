@@ -14,6 +14,11 @@ import java.util.Map;
 @RestControllerAdvice
 public class ChamberExceptionHandler {
 
+    @ExceptionHandler(ChamberInvalidUserException.class)
+    public ResponseEntity<String> handleInvalidUserException(ChamberInvalidUserException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<String> handleUnauthorizedException(AuthenticationException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);

@@ -1,6 +1,8 @@
 package com.rua.logic;
 
+import com.rua.ChamberUserPrincipal;
 import com.rua.entity.ChamberUser;
+import com.rua.exception.ChamberInvalidUserException;
 import com.rua.repository.ChamberUserRepository;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -17,12 +19,32 @@ public class ChamberUserLogic {
 
     // Happens during authentication phase, before controller logic is executed
     @Nonnull
-    public ChamberUser findUserByUsername(final String username) throws UsernameNotFoundException {
+    public ChamberUser findByUsername(final String username) throws UsernameNotFoundException {
         final var user = chamberUserRepository.findByUsername(username);
         if (user == null) {
             throw new UsernameNotFoundException(LOG_PREFIX_TIME_CHAMBER + "User not found");
         }
         return user;
+    }
+
+    public void createUser(@Nonnull final String username, @Nonnull final String password) {
+        final var existingUser = chamberUserRepository.findByUsername(username);
+        if (existingUser != null) {
+            throw new ChamberInvalidUserException(LOG_PREFIX_TIME_CHAMBER + "The username already exists");
+        }
+        final var userToSave = ChamberUser.builder() //
+                .username(username) //
+                .password(password) //
+                .build();
+        chamberUserRepository.save(userToSave);
+    }
+
+    public ChamberUserPrincipal authenticateUser(@Nonnull final String username, @Nonnull final String password) {
+        final var user = chamberUserRepository.findByUsername(username);
+        if (user == null || !password.equals(user.getPassword())) {
+            throw new ChamberInvalidUserException(LOG_PREFIX_TIME_CHAMBER + "Invalid username or password");
+        }
+        return new ChamberUserPrincipal(user);
     }
 
 }
