@@ -13,7 +13,6 @@ public class SharedTokenizerUtils {
         final var registry = Encodings.newDefaultEncodingRegistry();
         final var enc = registry.getEncoding(EncodingType.CL100K_BASE);
         final var encoded = enc.encode("你好，世界Hello, world!");
-        // final String decoded = enc.decode(encoded);
         return encoded.size();
     }
 

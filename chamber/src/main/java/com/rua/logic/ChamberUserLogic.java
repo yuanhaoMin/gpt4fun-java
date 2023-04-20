@@ -7,6 +7,7 @@ import com.rua.repository.ChamberUserRepository;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import static com.rua.constant.ChamberConstants.LOG_PREFIX_TIME_CHAMBER;
@@ -16,6 +17,8 @@ import static com.rua.constant.ChamberConstants.LOG_PREFIX_TIME_CHAMBER;
 public class ChamberUserLogic {
 
     private final ChamberUserRepository chamberUserRepository;
+
+    private final PasswordEncoder passwordEncoder;
 
     // Happens during authentication phase, before controller logic is executed
     @Nonnull
@@ -34,14 +37,14 @@ public class ChamberUserLogic {
         }
         final var userToSave = ChamberUser.builder() //
                 .username(username) //
-                .password(password) //
+                .password(passwordEncoder.encode(password)) //
                 .build();
         chamberUserRepository.save(userToSave);
     }
 
     public ChamberUserPrincipal authenticateUser(@Nonnull final String username, @Nonnull final String password) {
         final var user = chamberUserRepository.findByUsername(username);
-        if (user == null || !password.equals(user.getPassword())) {
+        if (user == null || !passwordEncoder.matches(password, user.getPassword())) {
             throw new ChamberInvalidUserException(LOG_PREFIX_TIME_CHAMBER + "Invalid username or password");
         }
         return new ChamberUserPrincipal(user);
