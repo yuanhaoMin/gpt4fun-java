@@ -9,7 +9,6 @@ import java.util.List;
 
 import static com.rua.constant.OpenAIConstants.GPT35TURBO_SYSTEM;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
 
 class OpenAIGPT35LogicUTest {
 
@@ -25,30 +24,10 @@ class OpenAIGPT35LogicUTest {
         classUnderTest.updateSystemMessage(history, systemMessageContent);
 
         // Then
+        final var lastMessage = history.get(history.size() - 1);
         assertEquals(1, history.size());
-        assertEquals(GPT35TURBO_SYSTEM, history.get(0).role());
-        assertEquals(systemMessageContent, history.get(0).content());
-    }
-
-    @Test
-    void testUpdateSystemMessage_whenSameMessage_shouldNotUpdate() {
-        // Given
-        final List<OpenAIGPT35ChatMessage> history = new ArrayList<>();
-        final var mockedMessage = mock(OpenAIGPT35ChatMessage.class);
-        history.add(mockedMessage);
-        final var systemMessageContent = "Same message";
-
-        // When
-        when(mockedMessage.role()).thenReturn(GPT35TURBO_SYSTEM);
-        when(mockedMessage.content()).thenReturn(systemMessageContent);
-        classUnderTest.updateSystemMessage(history, systemMessageContent);
-
-        // Then
-        verify(mockedMessage, times(1)).role();
-        verify(mockedMessage, times(1)).content();
-
-        assertEquals(1, history.size());
-        assertEquals(mockedMessage, history.get(0));
+        assertEquals(GPT35TURBO_SYSTEM, lastMessage.role());
+        assertEquals(systemMessageContent, lastMessage.content());
     }
 
     @Test
@@ -62,9 +41,10 @@ class OpenAIGPT35LogicUTest {
         classUnderTest.updateSystemMessage(history, systemMessageContent);
 
         // Then
+        final var lastMessage = history.get(history.size() - 1);
         assertEquals(1, history.size());
-        assertEquals(GPT35TURBO_SYSTEM, history.get(0).role());
-        assertEquals(systemMessageContent, history.get(0).content());
+        assertEquals(GPT35TURBO_SYSTEM, lastMessage.role());
+        assertEquals(systemMessageContent, lastMessage.content());
     }
 
 }

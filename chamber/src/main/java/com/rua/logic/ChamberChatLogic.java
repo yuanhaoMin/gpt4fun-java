@@ -52,6 +52,7 @@ public class ChamberChatLogic {
     public void updateChamberUserChatLog(@Nonnull final ChamberUserChatLog userChatLog,
                                          final List<OpenAIGPT35ChatMessage> historyMessages,
                                          final ChamberCompleteChatRequestBo request) {
+        openAIGPT35Logic.shiftSystemMessageToHistoryEnd(historyMessages);
         userChatLog.setLastChatTime(getCurrentTimeInParis());
         userChatLog.setMessages(convertObjectToJson(historyMessages));
         // First time user chat
