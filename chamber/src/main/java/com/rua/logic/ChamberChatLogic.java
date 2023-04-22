@@ -59,7 +59,7 @@ public class ChamberChatLogic {
         if (userChatLog.getUser() == null) {
             userChatLog.setUser(chamberUserLogic.findByUsername(request.username()));
         }
-        // TODO count request length, maybe a map of localdatetime and count
+        // TODO: count request length, maybe a map of localdatetime and count
         chamberUserChatLogRepository.save(userChatLog);
     }
 

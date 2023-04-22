@@ -19,7 +19,7 @@ IF OBJECT_ID('dbo.chamber_user') IS NULL
 IF OBJECT_ID('dbo.chamber_user_chat_log') IS NULL
     CREATE TABLE chamber_user_chat_log (
       id INT IDENTITY(1,1) PRIMARY KEY,
-      user_id VARCHAR(255) UNIQUE,
+      user_id INT UNIQUE,
       messages NVARCHAR(MAX),
       last_chat_time DATETIME,
     );

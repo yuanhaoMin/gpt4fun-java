@@ -1,6 +1,7 @@
 dependencies {
     implementation project(":chamber")
-    implementation project(":discord")
+    // TODO: Stop using discord until the websocket disconnect issue is fixed
+    // implementation project(":discord")
 }
 
 bootJar {

@@ -8,7 +8,7 @@ public class SharedTokenizerUtils {
     private SharedTokenizerUtils() {
     }
 
-    // TODO Waiting for chinese tokenizer support
+    // TODO: Waiting for chinese tokenizer support
     public static int tokenize() {
         final var registry = Encodings.newDefaultEncodingRegistry();
         final var enc = registry.getEncoding(EncodingType.CL100K_BASE);
