@@ -5,6 +5,6 @@ import lombok.Builder;
 import org.springframework.web.multipart.MultipartFile;
 
 @Builder
-public record OpenAISpeechToTextRequestDto(@JsonProperty("model") String model,
-                                           @JsonProperty("file") MultipartFile file) {
+public record OpenAITranscriptionRequestDto(@JsonProperty("model") String model,
+                                            @JsonProperty("file") MultipartFile file) {
 }

@@ -1,12 +1,12 @@
 package com.rua.service;
 
 import com.rua.logic.DiscordChatLogic;
-import com.rua.model.request.DiscordCompleteChatRequestBo;
-import com.rua.model.request.OpenAIGPT35ChatMessage;
-import com.rua.model.request.OpenAIGPT35ChatRequestDto;
-import com.rua.model.response.OpenAIGPT35ChatWithoutStreamResponseDto;
+import com.rua.model.request.DiscordChatCompletionRequestBo;
+import com.rua.model.request.OpenAIChatCompletionMessage;
+import com.rua.model.request.OpenAIChatCompletionRequestDto;
+import com.rua.model.response.OpenAIChatCompletionResponseDto;
 import com.rua.property.DiscordProperties;
-import com.rua.util.OpenAIGPT35Logic;
+import com.rua.util.OpenAIChatCompletionLogic;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,33 +23,34 @@ public class DiscordChatService {
 
     private final DiscordChatLogic discordChatLogic;
 
-    private final OpenAIGPT35Logic openAIGPT35Logic;
+    private final OpenAIChatCompletionLogic openAIChatCompletionLogic;
 
     private final DiscordProperties discordProperties;
 
-    public String gpt35completeChat(final DiscordCompleteChatRequestBo request) {
+    public String gpt35ChatCompletion(final DiscordChatCompletionRequestBo request) {
         var guildChatLog = discordChatLogic.findByGuildId(request.guildId());
-        final List<OpenAIGPT35ChatMessage> messages = discordChatLogic.retrieveHistoryMessages(guildChatLog);
+        final List<OpenAIChatCompletionMessage> messages = discordChatLogic.retrieveHistoryMessages(guildChatLog);
         // Add user message for this time prompt
-        messages.add(new OpenAIGPT35ChatMessage(GPT35TURBO_USER, request.userMessage()));
-        final var openAIGPT35ChatRequest = OpenAIGPT35ChatRequestDto.builder() //
+        messages.add(new OpenAIChatCompletionMessage(CHAT_COMPLETION_ROLE_USER, request.userMessage()));
+        final var openAIGPT35ChatRequest = OpenAIChatCompletionRequestDto.builder() //
                 .model(OPENAI_MODEL_GPT_35_TURBO) //
                 .messages(messages) //
                 .hasStream(false) //
                 .temperature(0.4) //
                 .build();
-        final var gptResponse = openAIClientService.gpt35ChatWithoutStream(openAIGPT35ChatRequest);
+        final var gptResponse = openAIClientService.chatCompletionWithoutStream(openAIGPT35ChatRequest);
         // Add gpt response for next time prompt
         messages.add(
-                new OpenAIGPT35ChatMessage(GPT35TURBO_ASSISTANT, gptResponse.choices().get(0).message().content()));
-        openAIGPT35Logic.shiftSystemMessageToHistoryEnd(messages);
+                new OpenAIChatCompletionMessage(CHAT_COMPLETION_ROLE_ASSISTANT,
+                        gptResponse.choices().get(0).message().content()));
+        openAIChatCompletionLogic.shiftSystemMessageToHistoryEnd(messages);
         final var botResponse = generateBotResponseAndHandleTokenLimit(gptResponse, messages, request.username());
         discordChatLogic.updateDiscordGuildChatLog(guildChatLog, messages, request);
         return botResponse;
     }
 
-    private String generateBotResponseAndHandleTokenLimit(final OpenAIGPT35ChatWithoutStreamResponseDto gptResponse,
-                                                          final List<OpenAIGPT35ChatMessage> historyMessages,
+    private String generateBotResponseAndHandleTokenLimit(final OpenAIChatCompletionResponseDto gptResponse,
+                                                          final List<OpenAIChatCompletionMessage> historyMessages,
                                                           final String username) {
         final var botResponse = new StringBuilder();
         // Next time prompt tokens = current total tokens + estimated next time prompt tokens
@@ -64,7 +65,7 @@ public class DiscordChatService {
             botResponse.append(String.format(GPT_35_CHAT_TOKEN_LIMIT, //
                     estimatedNextTimePromptTokens, //
                     discordProperties.maxTotalTokens()));
-            final var purgedPromptTokens = openAIGPT35Logic.limitPromptTokensByPurgingHistoryMessages(
+            final var purgedPromptTokens = openAIChatCompletionLogic.limitPromptTokensByPurgingHistoryMessages(
                     estimatedNextTimePromptTokens, maxPromptTokens, historyMessages);
             botResponse.append(String.format(GPT_35_CHAT_CLEAN_HISTORY, //
                     estimatedNextTimePromptTokens, //

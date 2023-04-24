@@ -1,11 +1,11 @@
 package com.rua.service;
 
 import com.rua.OpenAIClient;
-import com.rua.model.request.OpenAIGPT35ChatRequestDto;
-import com.rua.model.request.OpenAISpeechToTextRequestDto;
+import com.rua.model.request.OpenAIChatCompletionRequestDto;
+import com.rua.model.request.OpenAITranscriptionRequestDto;
+import com.rua.model.response.OpenAIChatCompletionResponseDto;
 import com.rua.model.response.OpenAIGPT35ChatWithStreamData;
-import com.rua.model.response.OpenAIGPT35ChatWithoutStreamResponseDto;
-import com.rua.model.response.OpenAIWhisperTranscriptionResponseDto;
+import com.rua.model.response.OpenAITranscriptionResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,26 +22,27 @@ public class OpenAIClientService {
 
     private final OpenAIClient openAIClient;
 
-    public List<OpenAIGPT35ChatWithStreamData> gpt35ChatWithStream(final OpenAIGPT35ChatRequestDto request) {
+    public List<OpenAIGPT35ChatWithStreamData> gpt35ChatWithStream(final OpenAIChatCompletionRequestDto request) {
         if (!request.hasStream()) {
             throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = true");
         }
-        final var plainText = openAIClient.chatWithStream(request);
+        final var plainText = openAIClient.chatCompletionWithStream(request);
         return extractChatData(plainText);
     }
 
-    public OpenAIGPT35ChatWithoutStreamResponseDto gpt35ChatWithoutStream(final OpenAIGPT35ChatRequestDto request) {
+    public OpenAIChatCompletionResponseDto chatCompletionWithoutStream(
+            final OpenAIChatCompletionRequestDto request) {
         if (request.hasStream()) {
             throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = false");
         }
-        return openAIClient.chatWithoutStream(request);
+        return openAIClient.chatCompletionWithoutStream(request);
     }
 
-    public OpenAIWhisperTranscriptionResponseDto whisperCreateTranscription(
-            final OpenAISpeechToTextRequestDto request) {
+    public OpenAITranscriptionResponseDto transcription(
+            final OpenAITranscriptionRequestDto request) {
         final var model = request.model();
         final var audioFile = request.file();
-        return openAIClient.createTranscription(model, audioFile);
+        return openAIClient.transcription(model, audioFile);
     }
 
     private List<OpenAIGPT35ChatWithStreamData> extractChatData(final String input) {

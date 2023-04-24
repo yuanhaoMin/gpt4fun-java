@@ -2,7 +2,7 @@ package com.rua.logic.handler;
 
 import com.rua.logic.DiscordChatLogic;
 import com.rua.logic.DiscordPostConstructGateWayClient;
-import com.rua.model.request.DiscordCompleteChatRequestBo;
+import com.rua.model.request.DiscordChatCompletionRequestBo;
 import com.rua.property.DiscordProperties;
 import com.rua.service.DiscordChatService;
 import com.rua.util.SharedFormatUtils;
@@ -38,7 +38,7 @@ public class DiscordMessageCreateHandler implements DiscordEventHandler<MessageC
 
     /**
      * This method is presented in an imperative style and lacks a signal for the invocation of
-     * {@link DiscordChatService#gpt35completeChat(DiscordCompleteChatRequestBo)}. As a result, any errors that may occur
+     * {@link DiscordChatService#gpt35ChatCompletion(DiscordChatCompletionRequestBo)}. As a result, any errors that may occur
      * will not be caught by the onErrorResume function in {@link DiscordPostConstructGateWayClient#init()}.
      * Therefore, a traditional try-catch block is used to catch and log any errors that may occur.
      */
@@ -53,14 +53,14 @@ public class DiscordMessageCreateHandler implements DiscordEventHandler<MessageC
             final var guildId = message.getGuildId().map(Snowflake::asString).orElse("");
             final var userMessage = getMessageContentWithoutMention(message.getContent());
             final var username = message.getAuthor().map(User::getUsername).orElse("");
-            final var request = DiscordCompleteChatRequestBo.builder() //
+            final var request = DiscordChatCompletionRequestBo.builder() //
                     .guildId(guildId) //
                     .lastChatTime(getCurrentTimeInParis()) //
                     .username(username) //
                     .userMessage(userMessage) //
                     .build();
             try {
-                final var botResponse = discordChatService.gpt35completeChat(request);
+                final var botResponse = discordChatService.gpt35ChatCompletion(request);
                 final var endTimeMillis = System.currentTimeMillis();
                 final var executionTimeSeconds = SharedFormatUtils.convertMillisToStringWithMaxTwoFractionDigits(
                         endTimeMillis - startTimeMillis);
