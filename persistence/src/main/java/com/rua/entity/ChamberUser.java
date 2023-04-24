@@ -3,6 +3,8 @@ package com.rua.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @AllArgsConstructor
 @Builder
 @Entity
@@ -21,5 +23,11 @@ public class ChamberUser {
 
     @Column(name = "password")
     private String password;
+
+    @Column(name = "created_time")
+    private LocalDateTime createdTime;
+
+    @Column(name = "last_login_time")
+    private LocalDateTime lastLoginTime;
 
 }

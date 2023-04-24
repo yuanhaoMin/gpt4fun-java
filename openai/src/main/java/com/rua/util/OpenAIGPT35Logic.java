@@ -40,15 +40,43 @@ public class OpenAIGPT35Logic {
 
     public void updateSystemMessage(@Nonnull final List<OpenAIGPT35ChatMessage> historyMessages,
                                     @Nonnull final String systemMessageContent) {
-        // Get the last system message, or an empty message if there are none
-        final var lastSystemMessage = historyMessages.stream() //
-                .filter(m -> m.role().equals(GPT35TURBO_SYSTEM)) //
-                .findFirst() //
-                .orElse(new OpenAIGPT35ChatMessage("", ""));
-        // Check if the new system message is different from the last one
-        if (!systemMessageContent.equals(lastSystemMessage.content())) {
-            historyMessages.remove(lastSystemMessage);
-            historyMessages.add(0, new OpenAIGPT35ChatMessage(GPT35TURBO_SYSTEM, systemMessageContent));
+        final var newSystemMessage = new OpenAIGPT35ChatMessage(GPT35TURBO_SYSTEM, systemMessageContent);
+        if (historyMessages.isEmpty()) {
+            historyMessages.add(newSystemMessage);
+            return;
+        }
+        OpenAIGPT35ChatMessage lastSystemMessage = null;
+        int lastIndex = -1;
+        // We know system message is always the last one
+        for (int i = historyMessages.size() - 1; i >= 0; i--) {
+            OpenAIGPT35ChatMessage message = historyMessages.get(i);
+            if (message.role().equals(GPT35TURBO_SYSTEM)) {
+                lastSystemMessage = message;
+                lastIndex = i;
+                break;
+            }
+        }
+        if (lastSystemMessage != null) {
+            historyMessages.remove(lastIndex);
+            historyMessages.add(newSystemMessage);
+        }
+    }
+
+    public void shiftSystemMessageToHistoryEnd(@Nonnull final List<OpenAIGPT35ChatMessage> historyMessages) {
+        // For efficiency reason no stream is used here
+        OpenAIGPT35ChatMessage lastSystemMessage = null;
+        int lastIndex = -1;
+        for (int i = 0; i < historyMessages.size(); i++) {
+            final var message = historyMessages.get(i);
+            if (message.role().equals(GPT35TURBO_SYSTEM)) {
+                lastSystemMessage = message;
+                lastIndex = i;
+                break;
+            }
+        }
+        if (lastSystemMessage != null) {
+            historyMessages.remove(lastIndex);
+            historyMessages.add(lastSystemMessage);
         }
     }
 

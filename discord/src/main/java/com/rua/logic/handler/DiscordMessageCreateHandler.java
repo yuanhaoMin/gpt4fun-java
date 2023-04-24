@@ -17,11 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-import java.time.Clock;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-
 import static com.rua.constant.DiscordConstants.*;
+import static com.rua.util.SharedFormatUtils.getCurrentTimeInParis;
 
 @Component
 @RequiredArgsConstructor
@@ -58,7 +55,7 @@ public class DiscordMessageCreateHandler implements DiscordEventHandler<MessageC
             final var username = message.getAuthor().map(User::getUsername).orElse("");
             final var request = DiscordCompleteChatRequestBo.builder() //
                     .guildId(guildId) //
-                    .lastChatTime(LocalDateTime.now(Clock.system(ZoneId.of("Europe/Paris")))) //
+                    .lastChatTime(getCurrentTimeInParis()) //
                     .username(username) //
                     .userMessage(userMessage) //
                     .build();

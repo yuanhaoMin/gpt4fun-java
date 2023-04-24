@@ -42,6 +42,7 @@ public class DiscordChatService {
         // Add gpt response for next time prompt
         messages.add(
                 new OpenAIGPT35ChatMessage(GPT35TURBO_ASSISTANT, gptResponse.choices().get(0).message().content()));
+        openAIGPT35Logic.shiftSystemMessageToHistoryEnd(messages);
         final var botResponse = generateBotResponseAndHandleTokenLimit(gptResponse, messages, request.username());
         discordChatLogic.updateDiscordGuildChatLog(guildChatLog, messages, request);
         return botResponse;

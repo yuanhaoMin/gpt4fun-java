@@ -16,6 +16,8 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+import static com.rua.constant.ChamberControllerConstants.CHAMBER_USER_CONTROLLER_PATH;
+
 @Configuration
 @EnableWebSecurity
 public class ChamberWebSecurityConfig {
@@ -34,8 +36,10 @@ public class ChamberWebSecurityConfig {
         http //
                 .httpBasic() //
                 .and() //
-                .authorizeHttpRequests().anyRequest().authenticated() //
-                .and() //
+                .authorizeHttpRequests(request -> request //
+                        .requestMatchers(CHAMBER_USER_CONTROLLER_PATH + "/**") //
+                        .permitAll() // Permit all user related requests
+                        .anyRequest().authenticated()) // Other requests must be authenticated
                 .cors() // Cors must be enabled with custom CorsConfigurationSource to allow all origins
                 .and() //
                 .csrf().disable() //
@@ -44,7 +48,6 @@ public class ChamberWebSecurityConfig {
         return http.build();
     }
 
-    // Disable password encoding
     @Bean
     PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
