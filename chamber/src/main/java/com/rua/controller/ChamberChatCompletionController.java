@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
 
 import static com.rua.constant.OpenAIConstants.OPENAI_MODEL_GPT_35_TURBO;
 
@@ -24,18 +25,30 @@ public class ChamberChatCompletionController {
     private final ChamberChatCompletionService chamberChatCompletionService;
 
     @PostMapping(value = "/messages", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ChamberChatCompletionResponseDto chatCompletion(final Authentication authentication,
-                                                           @Valid @RequestBody final ChamberChatCompletionRequestDto requestDto) {
+    public ChamberChatCompletionResponseDto chatCompletionWithoutStream(final Authentication authentication,
+                                                                        @Valid @RequestBody final ChamberChatCompletionRequestDto requestDto) {
         final var requestBo = ChamberChatCompletionRequestBo.builder() //
                 .model(OPENAI_MODEL_GPT_35_TURBO) //
                 .temperature(requestDto.temperature()) //
                 .username(authentication.getName()) //
                 .userMessage(requestDto.userMessage()) //
                 .build();
-        final var responseMessage = chamberChatCompletionService.chatCompletion(requestBo);
+        final var responseMessage = chamberChatCompletionService.chatCompletionWithoutStream(requestBo);
         return ChamberChatCompletionResponseDto.builder() //
                 .responseMessage(responseMessage) //
                 .build();
+    }
+
+    @PostMapping(value = "/stream-messages", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<String> chatCompletionWithStream(final Authentication authentication,
+                                                 @Valid @RequestBody final ChamberChatCompletionRequestDto requestDto) {
+        final var requestBo = ChamberChatCompletionRequestBo.builder() //
+                .model(OPENAI_MODEL_GPT_35_TURBO) //
+                .temperature(requestDto.temperature()) //
+                .username(authentication.getName()) //
+                .userMessage(requestDto.userMessage()) //
+                .build();
+        return chamberChatCompletionService.chatCompletionWithStream(requestBo);
     }
 
     @DeleteMapping(value = "/history", produces = MediaType.APPLICATION_JSON_VALUE)

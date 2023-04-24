@@ -22,4 +22,7 @@ public class OpenAIConstants {
     public static final String CHAT_COMPLETION_ROLE_SYSTEM = "system";
     public static final String CHAT_COMPLETION_ROLE_USER = "user";
 
+    // Other
+    public static final String END_OF_CHAT_COMPLETION_STREAM = "[DONE]";
+
 }

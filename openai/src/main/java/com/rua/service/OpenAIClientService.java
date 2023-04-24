@@ -1,63 +1,61 @@
 package com.rua.service;
 
-import com.rua.OpenAIClient;
+import com.rua.OpenAIFeignClient;
 import com.rua.model.request.OpenAIChatCompletionRequestDto;
 import com.rua.model.request.OpenAITranscriptionRequestDto;
-import com.rua.model.response.OpenAIChatCompletionResponseDto;
-import com.rua.model.response.OpenAIGPT35ChatWithStreamData;
+import com.rua.model.response.OpenAIChatCompletionWithoutStreamResponseDto;
 import com.rua.model.response.OpenAITranscriptionResponseDto;
+import com.rua.property.OpenAIProperties;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
+import reactor.netty.http.client.HttpClient;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
-
-import static com.rua.constant.OpenAIConstants.LOG_PREFIX_OPENAI;
-import static com.rua.util.SharedDataUtils.parseJsonToObject;
+import static com.rua.constant.OpenAIConstants.*;
 
 @RequiredArgsConstructor
 @Service
 public class OpenAIClientService {
 
-    private final OpenAIClient openAIClient;
+    private final OpenAIFeignClient openAIFeignClient;
 
-    public List<OpenAIGPT35ChatWithStreamData> gpt35ChatWithStream(final OpenAIChatCompletionRequestDto request) {
-        if (!request.hasStream()) {
+    private final OpenAIProperties openAIProperties;
+
+    private final HttpClient webHttpClient;
+
+    public Flux<String> chatCompletionWithStream(final OpenAIChatCompletionRequestDto request) {
+        if (!request.useStream()) {
             throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = true");
         }
-        final var plainText = openAIClient.chatCompletionWithStream(request);
-        return extractChatData(plainText);
+        final var webClient = WebClient.builder() //
+                .baseUrl(OPENAI_API_BASE_URL + OPENAI_API_CHAT_COMPLETION_URL) //
+                .clientConnector(new ReactorClientHttpConnector(webHttpClient)) //
+                .build();
+        return webClient.post() //
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE) //
+                .header("Authorization", "Bearer " + openAIProperties.apiKey()) //
+                .body(BodyInserters.fromValue(request)) //
+                .retrieve() //
+                .bodyToFlux(String.class);
     }
 
-    public OpenAIChatCompletionResponseDto chatCompletionWithoutStream(
+    public OpenAIChatCompletionWithoutStreamResponseDto chatCompletionWithoutStream(
             final OpenAIChatCompletionRequestDto request) {
-        if (request.hasStream()) {
+        if (request.useStream()) {
             throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = false");
         }
-        return openAIClient.chatCompletionWithoutStream(request);
+        return openAIFeignClient.chatCompletionWithoutStream(request);
     }
 
-    public OpenAITranscriptionResponseDto transcription(
-            final OpenAITranscriptionRequestDto request) {
+    public OpenAITranscriptionResponseDto transcription(final OpenAITranscriptionRequestDto request) {
         final var model = request.model();
         final var audioFile = request.file();
-        return openAIClient.transcription(model, audioFile);
-    }
-
-    private List<OpenAIGPT35ChatWithStreamData> extractChatData(final String input) {
-        final List<OpenAIGPT35ChatWithStreamData> dataList = new ArrayList<>();
-        final var patternString = "data: (\\{.*?\"choices\":\\[\\{.*?}]})";
-        final var pattern = Pattern.compile(patternString);
-        final var matcher = pattern.matcher(input);
-        while (matcher.find()) {
-            final var dataString = matcher.group(1);
-            if (dataString.contains("{\"delta\":{\"content\"")) {
-                final var data = parseJsonToObject(dataString, OpenAIGPT35ChatWithStreamData.class);
-                dataList.add(data);
-            }
-        }
-        return dataList;
+        return openAIFeignClient.transcription(model, audioFile);
     }
 
 }

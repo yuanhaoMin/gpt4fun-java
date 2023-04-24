@@ -4,9 +4,10 @@ import com.rua.logic.DiscordChatLogic;
 import com.rua.model.request.DiscordChatCompletionRequestBo;
 import com.rua.model.request.OpenAIChatCompletionMessage;
 import com.rua.model.request.OpenAIChatCompletionRequestDto;
-import com.rua.model.response.OpenAIChatCompletionResponseDto;
+import com.rua.model.response.OpenAIChatCompletionWithoutStreamResponseDto;
 import com.rua.property.DiscordProperties;
 import com.rua.util.OpenAIChatCompletionLogic;
+import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +36,7 @@ public class DiscordChatService {
         final var openAIGPT35ChatRequest = OpenAIChatCompletionRequestDto.builder() //
                 .model(OPENAI_MODEL_GPT_35_TURBO) //
                 .messages(messages) //
-                .hasStream(false) //
+                .useStream(false) //
                 .temperature(0.4) //
                 .build();
         final var gptResponse = openAIClientService.chatCompletionWithoutStream(openAIGPT35ChatRequest);
@@ -49,9 +50,10 @@ public class DiscordChatService {
         return botResponse;
     }
 
-    private String generateBotResponseAndHandleTokenLimit(final OpenAIChatCompletionResponseDto gptResponse,
-                                                          final List<OpenAIChatCompletionMessage> historyMessages,
-                                                          final String username) {
+    private String generateBotResponseAndHandleTokenLimit(
+            final OpenAIChatCompletionWithoutStreamResponseDto gptResponse,
+            @Nonnull final List<OpenAIChatCompletionMessage> historyMessages,
+            final String username) {
         final var botResponse = new StringBuilder();
         // Next time prompt tokens = current total tokens + estimated next time prompt tokens
         final var estimatedNextTimePromptTokens = gptResponse.usage()

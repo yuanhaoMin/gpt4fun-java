@@ -2,7 +2,7 @@ package com.rua;
 
 import com.rua.config.OpenAIClientConfig;
 import com.rua.model.request.OpenAIChatCompletionRequestDto;
-import com.rua.model.response.OpenAIChatCompletionResponseDto;
+import com.rua.model.response.OpenAIChatCompletionWithoutStreamResponseDto;
 import com.rua.model.response.OpenAITranscriptionResponseDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
@@ -18,14 +18,10 @@ import static com.rua.constant.OpenAIConstants.*;
         url = OPENAI_API_BASE_URL,
         configuration = OpenAIClientConfig.class
 )
-public interface OpenAIClient {
-
-    @PostMapping(value = OPENAI_API_CHAT_COMPLETION_URL, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.TEXT_PLAIN_VALUE)
-    String chatCompletionWithStream(
-            @RequestBody OpenAIChatCompletionRequestDto openAIChatCompletionRequestDto);
+public interface OpenAIFeignClient {
 
     @PostMapping(value = OPENAI_API_CHAT_COMPLETION_URL, consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    OpenAIChatCompletionResponseDto chatCompletionWithoutStream(
+    OpenAIChatCompletionWithoutStreamResponseDto chatCompletionWithoutStream(
             @RequestBody OpenAIChatCompletionRequestDto openAIChatCompletionRequestDto);
 
     @PostMapping(value = OPENAI_API_TRANSCRIPTION_URL, consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)

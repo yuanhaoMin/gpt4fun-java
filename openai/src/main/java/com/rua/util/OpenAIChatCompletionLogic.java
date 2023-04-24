@@ -13,7 +13,7 @@ public class OpenAIChatCompletionLogic {
 
     // TODO: Unit Test, think a better solution
     public long limitPromptTokensByPurgingHistoryMessages(long currentPromptTokens, long maxPromptTokens,
-                                                          List<OpenAIChatCompletionMessage> historyMessages) {
+                                                          @Nonnull final List<OpenAIChatCompletionMessage> historyMessages) {
         final var totalHistoryMessageLength = sumHistoryMessagesLengths(historyMessages);
         final var characterToPromptTokenConversionRatio = (double) currentPromptTokens / totalHistoryMessageLength;
         while (currentPromptTokens >= maxPromptTokens) {
@@ -32,7 +32,7 @@ public class OpenAIChatCompletionLogic {
         return currentPromptTokens;
     }
 
-    public int sumHistoryMessagesLengths(final List<OpenAIChatCompletionMessage> historyMessages) {
+    public int sumHistoryMessagesLengths(@Nonnull final List<OpenAIChatCompletionMessage> historyMessages) {
         return historyMessages.stream() //
                 .mapToInt(message -> message.content().length()) //
                 .sum();
@@ -41,25 +41,20 @@ public class OpenAIChatCompletionLogic {
     public void updateSystemMessage(@Nonnull final List<OpenAIChatCompletionMessage> historyMessages,
                                     @Nonnull final String systemMessageContent) {
         final var newSystemMessage = new OpenAIChatCompletionMessage(CHAT_COMPLETION_ROLE_SYSTEM, systemMessageContent);
-        if (historyMessages.isEmpty()) {
-            historyMessages.add(newSystemMessage);
-            return;
-        }
-        OpenAIChatCompletionMessage lastSystemMessage = null;
         int lastIndex = -1;
-        // We know system message is always the last one
+        // Search in reverse order since system message is usually the last one
         for (int i = historyMessages.size() - 1; i >= 0; i--) {
             OpenAIChatCompletionMessage message = historyMessages.get(i);
             if (message.role().equals(CHAT_COMPLETION_ROLE_SYSTEM)) {
-                lastSystemMessage = message;
                 lastIndex = i;
                 break;
             }
         }
-        if (lastSystemMessage != null) {
+        if (lastIndex >= 0) {
             historyMessages.remove(lastIndex);
-            historyMessages.add(newSystemMessage);
         }
+        // If lastSystemMessage is null, it means there is no system message in history, so we add a new one
+        historyMessages.add(newSystemMessage);
     }
 
     public void shiftSystemMessageToHistoryEnd(@Nonnull final List<OpenAIChatCompletionMessage> historyMessages) {
