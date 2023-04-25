@@ -34,15 +34,14 @@ public class ChamberChatCompletionService {
     // TODO: refactor all methods, move some methods to ChamberChatCompletionLogic
     public Flux<String> chatCompletionWithStream(final ChamberChatCompletionRequestBo request) {
         final var userChatLog = chamberChatCompletionLogic.findUserChatLogByUserId(request.username());
-        final var messages = chamberChatCompletionLogic.retrieveHistoryMessages(
-                userChatLog);
+        final var messages = chamberChatCompletionLogic.retrieveHistoryMessages(userChatLog);
         // Add user message for this time prompt
         messages.add(new OpenAIChatCompletionMessage(CHAT_COMPLETION_ROLE_USER, request.userMessage()));
         final var openAIChatCompletionRequest = createOpenAIChatCompletionRequest(request, messages, true);
         final List<String> collectedMessages = new ArrayList<>();
         final var startTimeMillis = System.currentTimeMillis();
         return openAIClientService.chatCompletionWithStream(openAIChatCompletionRequest) //
-                .map(jsonResponse -> extractAndCollectResponseMessage(collectedMessages, jsonResponse)) //
+                .map(response -> extractAndCollectResponseMessage(collectedMessages, response)) //
                 .filter(responseMessage -> !responseMessage.isEmpty()) //
                 .doOnComplete(() -> processChatCompletionResponse(startTimeMillis, messages,
                         String.join("", collectedMessages), userChatLog, request));
@@ -52,8 +51,7 @@ public class ChamberChatCompletionService {
         final var username = request.username();
         final var model = request.model();
         final var userChatLog = chamberChatCompletionLogic.findUserChatLogByUserId(username);
-        final var messages = chamberChatCompletionLogic.retrieveHistoryMessages(
-                userChatLog);
+        final var messages = chamberChatCompletionLogic.retrieveHistoryMessages(userChatLog);
         // Add user message for this time prompt
         messages.add(new OpenAIChatCompletionMessage(CHAT_COMPLETION_ROLE_USER, request.userMessage()));
         try {
@@ -86,29 +84,24 @@ public class ChamberChatCompletionService {
     }
 
     private OpenAIChatCompletionRequestDto createOpenAIChatCompletionRequest(
-            final ChamberChatCompletionRequestBo request,
-            final List<OpenAIChatCompletionMessage> messages, final boolean useStream) {
-        return OpenAIChatCompletionRequestDto.builder()
-                .model(request.model())
-                .messages(messages)
-                .useStream(useStream)
-                .temperature(request.temperature())
-                .build();
+            final ChamberChatCompletionRequestBo request, final List<OpenAIChatCompletionMessage> messages,
+            final boolean useStream) {
+        return OpenAIChatCompletionRequestDto.builder().model(request.model()).messages(messages).useStream(useStream)
+                .temperature(request.temperature()).build();
     }
 
     @Nonnull
-    private String extractAndCollectResponseMessage(final List<String> collectedMessages, final String jsonResponse) {
-        // Stream has ended
-        if (jsonResponse.equals(END_OF_CHAT_COMPLETION_STREAM)) {
-            return "";
+    private String extractAndCollectResponseMessage(final List<String> collectedMessages, final String response) {
+        if (response.equals(END_OF_CHAT_COMPLETION_STREAM)) {
+            return response;
         }
-        final var chunkData = parseJsonToObject(jsonResponse, OpenAIChatCompletionWithStreamResponseDto.class);
-        if (chunkData != null && chunkData.choices().get(0).message().content() != null) {
-            final var chunkMessage = chunkData.choices().get(0).message().content();
-            collectedMessages.add(chunkMessage);
-            return chunkMessage;
-        } else {
+        final var responseDto = parseJsonToObject(response, OpenAIChatCompletionWithStreamResponseDto.class);
+        final var responseMessage = responseDto != null ? responseDto.choices().get(0).message().content() : "";
+        if (responseMessage == null) {
             return "";
+        } else {
+            collectedMessages.add(responseMessage);
+            return responseMessage;
         }
     }
 

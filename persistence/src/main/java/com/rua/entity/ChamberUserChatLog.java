@@ -18,7 +18,8 @@ public class ChamberUserChatLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    // No cascade type is specified here because we don't want to modify the user when we modify the chat log
+    @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private ChamberUser user;
 
@@ -27,5 +28,8 @@ public class ChamberUserChatLog {
 
     @Column(name = "last_chat_time")
     private LocalDateTime lastChatTime;
+
+//    @OneToOne(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+//    private ChamberUserChatLog userChatLog;
 
 }

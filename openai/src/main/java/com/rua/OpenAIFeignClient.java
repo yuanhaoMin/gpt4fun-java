@@ -1,6 +1,6 @@
 package com.rua;
 
-import com.rua.config.OpenAIClientConfig;
+import com.rua.config.OpenAIFeignClientConfig;
 import com.rua.model.request.OpenAIChatCompletionRequestDto;
 import com.rua.model.response.OpenAIChatCompletionWithoutStreamResponseDto;
 import com.rua.model.response.OpenAITranscriptionResponseDto;
@@ -16,7 +16,7 @@ import static com.rua.constant.OpenAIConstants.*;
 @FeignClient(
         name = "openai-service",
         url = OPENAI_API_BASE_URL,
-        configuration = OpenAIClientConfig.class
+        configuration = OpenAIFeignClientConfig.class
 )
 public interface OpenAIFeignClient {
 

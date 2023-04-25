@@ -28,7 +28,8 @@ public class OpenAIClientService {
 
     private final HttpClient webHttpClient;
 
-    public Flux<String> chatCompletionWithStream(final OpenAIChatCompletionRequestDto request) {
+    public Flux<String> chatCompletionWithStream(
+            final OpenAIChatCompletionRequestDto request) {
         if (!request.useStream()) {
             throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = true");
         }

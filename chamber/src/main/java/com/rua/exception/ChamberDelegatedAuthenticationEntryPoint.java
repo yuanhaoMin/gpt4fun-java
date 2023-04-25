@@ -21,6 +21,7 @@ public class ChamberDelegatedAuthenticationEntryPoint implements AuthenticationE
         this.resolver = resolver;
     }
 
+    // TODO all error lead to 401 now, fix it
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) {

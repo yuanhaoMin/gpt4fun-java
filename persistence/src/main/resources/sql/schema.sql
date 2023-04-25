@@ -22,4 +22,5 @@ IF OBJECT_ID('dbo.chamber_user_chat_log') IS NULL
       user_id INT UNIQUE,
       messages NVARCHAR(MAX),
       last_chat_time DATETIME,
+      FOREIGN KEY (user_id) REFERENCES chamber_user(id),
     );
