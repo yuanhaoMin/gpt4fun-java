@@ -18,6 +18,9 @@ public class ChamberUser {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @OneToOne(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    private ChamberUserChatLog userChatLog;
+
     @Column(name = "user_name", nullable = false, unique = true)
     private String username;
 

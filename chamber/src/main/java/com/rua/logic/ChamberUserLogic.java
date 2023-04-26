@@ -2,6 +2,7 @@ package com.rua.logic;
 
 import com.rua.ChamberUserPrincipal;
 import com.rua.entity.ChamberUser;
+import com.rua.entity.ChamberUserChatLog;
 import com.rua.exception.ChamberInvalidUserException;
 import com.rua.repository.ChamberUserRepository;
 import jakarta.annotation.Nonnull;
@@ -38,6 +39,11 @@ public class ChamberUserLogic {
                 .username(username) //
                 .password(password) //
                 .build();
+        // Create a new ChamberUserChatLog instance and associate it with the user
+        final var chamberUserChatLog = new ChamberUserChatLog();
+        chamberUserChatLog.setUser(userToSave);
+        userToSave.setUserChatLog(chamberUserChatLog);
+        // Save the user
         chamberUserRepository.save(userToSave);
     }
 

@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.rua.util.SharedDataUtils.convertObjectToJson;
@@ -45,8 +44,7 @@ public class ChamberChatCompletionLogic {
 
     @Nonnull
     public List<OpenAIChatCompletionMessage> retrieveHistoryMessages(@Nonnull final ChamberUserChatLog userChatLog) {
-        final var historyMessages = parseJsonToList(userChatLog.getMessages(), OpenAIChatCompletionMessage.class);
-        return historyMessages != null ? historyMessages : new ArrayList<>();
+        return parseJsonToList(userChatLog.getMessages(), OpenAIChatCompletionMessage.class);
     }
 
     public void updateChamberUserChatLog(@Nonnull final ChamberUserChatLog userChatLog,

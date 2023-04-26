@@ -1,5 +1,6 @@
 package com.rua.entity;
 
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,13 +24,11 @@ public class ChamberUserChatLog {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private ChamberUser user;
 
+    @Nullable
     @Column(name = "messages", length = 100000)
     private String messages;
 
     @Column(name = "last_chat_time")
     private LocalDateTime lastChatTime;
-
-//    @OneToOne(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
-//    private ChamberUserChatLog userChatLog;
 
 }
