@@ -1,9 +1,9 @@
 package com.rua.logic;
 
-import com.rua.entity.ChamberUserChatLog;
+import com.rua.entity.ChamberUserChatCompletion;
 import com.rua.model.request.ChamberChatCompletionRequestBo;
 import com.rua.model.request.OpenAIChatCompletionMessage;
-import com.rua.repository.ChamberUserChatLogRepository;
+import com.rua.repository.ChamberUserChatCompletionRepository;
 import com.rua.util.OpenAIChatCompletionLogic;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -22,57 +22,59 @@ public class ChamberChatCompletionLogic {
 
     private final ChamberUserLogic chamberUserLogic;
 
-    private final ChamberUserChatLogRepository chamberUserChatLogRepository;
+    private final ChamberUserChatCompletionRepository chamberUserChatCompletionRepository;
 
     private final OpenAIChatCompletionLogic openAIChatCompletionLogic;
 
     @Nonnull
-    public ChamberUserChatLog findUserChatLogByUserId(final String username) throws UsernameNotFoundException {
+    public ChamberUserChatCompletion findUserChatCompletionByUsername(final String username)
+            throws UsernameNotFoundException {
         final var user = chamberUserLogic.findByUsername(username);
-        final var userChatLog = chamberUserChatLogRepository.findByUserId(user.getId());
-        return userChatLog != null ? userChatLog : new ChamberUserChatLog();
+        final var userChatCompletion = chamberUserChatCompletionRepository.findByUserId(user.getId());
+        return userChatCompletion != null ? userChatCompletion : new ChamberUserChatCompletion();
     }
 
     public void resetChatHistory(final String username) throws UsernameNotFoundException {
         final var user = chamberUserLogic.findByUsername(username);
-        final var userChatLog = chamberUserChatLogRepository.findByUserId(user.getId());
-        if (userChatLog != null) {
-            userChatLog.setMessages("");
-            chamberUserChatLogRepository.save(userChatLog);
+        final var userChatCompletion = chamberUserChatCompletionRepository.findByUserId(user.getId());
+        if (userChatCompletion != null) {
+            userChatCompletion.setMessages("");
+            chamberUserChatCompletionRepository.save(userChatCompletion);
         }
     }
 
     @Nonnull
-    public List<OpenAIChatCompletionMessage> retrieveHistoryMessages(@Nonnull final ChamberUserChatLog userChatLog) {
-        return parseJsonToList(userChatLog.getMessages(), OpenAIChatCompletionMessage.class);
+    public List<OpenAIChatCompletionMessage> retrieveHistoryMessages(
+            @Nonnull final ChamberUserChatCompletion userChatCompletion) {
+        return parseJsonToList(userChatCompletion.getMessages(), OpenAIChatCompletionMessage.class);
     }
 
-    public void updateChamberUserChatLog(@Nonnull final ChamberUserChatLog userChatLog,
-                                         final List<OpenAIChatCompletionMessage> historyMessages,
-                                         final ChamberChatCompletionRequestBo request) {
+    public void updateChamberUserChatCompletion(@Nonnull final ChamberUserChatCompletion userChatCompletion,
+                                                final List<OpenAIChatCompletionMessage> historyMessages,
+                                                final ChamberChatCompletionRequestBo request) {
         openAIChatCompletionLogic.shiftSystemMessageToHistoryEnd(historyMessages);
-        userChatLog.setLastChatTime(getCurrentTimeInParis());
-        userChatLog.setMessages(convertObjectToJson(historyMessages));
+        userChatCompletion.setLastChatTime(getCurrentTimeInParis());
+        userChatCompletion.setMessages(convertObjectToJson(historyMessages));
         // First time user chat
-        if (userChatLog.getUser() == null) {
-            userChatLog.setUser(chamberUserLogic.findByUsername(request.username()));
+        if (userChatCompletion.getUser() == null) {
+            userChatCompletion.setUser(chamberUserLogic.findByUsername(request.username()));
         }
         // TODO: count request length, maybe a map of localdatetime and count
-        chamberUserChatLogRepository.save(userChatLog);
+        chamberUserChatCompletionRepository.save(userChatCompletion);
     }
 
     public void updateSystemMessageAndPersist(final String username, @Nonnull final String systemMessageContent)
             throws UsernameNotFoundException {
         final var user = chamberUserLogic.findByUsername(username);
-        var userChatLog = chamberUserChatLogRepository.findByUserId(user.getId());
-        if (userChatLog == null) {
-            userChatLog = new ChamberUserChatLog();
-            userChatLog.setUser(user);
+        var userChatCompletion = chamberUserChatCompletionRepository.findByUserId(user.getId());
+        if (userChatCompletion == null) {
+            userChatCompletion = new ChamberUserChatCompletion();
+            userChatCompletion.setUser(user);
         }
-        final var historyMessages = retrieveHistoryMessages(userChatLog);
+        final var historyMessages = retrieveHistoryMessages(userChatCompletion);
         openAIChatCompletionLogic.updateSystemMessage(historyMessages, systemMessageContent);
-        userChatLog.setMessages(convertObjectToJson(historyMessages));
-        chamberUserChatLogRepository.save(userChatLog);
+        userChatCompletion.setMessages(convertObjectToJson(historyMessages));
+        chamberUserChatCompletionRepository.save(userChatCompletion);
     }
 
 }

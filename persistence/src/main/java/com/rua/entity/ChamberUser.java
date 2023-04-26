@@ -19,7 +19,10 @@ public class ChamberUser {
     private Long id;
 
     @OneToOne(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
-    private ChamberUserChatLog userChatLog;
+    private ChamberUserChatCompletion userChatCompletion;
+
+    @OneToOne(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE})
+    private ChamberUserCompletion userCompletion;
 
     @Column(name = "user_name", nullable = false, unique = true)
     private String username;

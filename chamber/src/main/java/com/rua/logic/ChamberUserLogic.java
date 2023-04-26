@@ -2,7 +2,8 @@ package com.rua.logic;
 
 import com.rua.ChamberUserPrincipal;
 import com.rua.entity.ChamberUser;
-import com.rua.entity.ChamberUserChatLog;
+import com.rua.entity.ChamberUserChatCompletion;
+import com.rua.entity.ChamberUserCompletion;
 import com.rua.exception.ChamberInvalidUserException;
 import com.rua.repository.ChamberUserRepository;
 import jakarta.annotation.Nonnull;
@@ -39,10 +40,12 @@ public class ChamberUserLogic {
                 .username(username) //
                 .password(password) //
                 .build();
-        // Create a new ChamberUserChatLog instance and associate it with the user
-        final var chamberUserChatLog = new ChamberUserChatLog();
-        chamberUserChatLog.setUser(userToSave);
-        userToSave.setUserChatLog(chamberUserChatLog);
+        final var chamberUserChatCompletion = new ChamberUserChatCompletion();
+        chamberUserChatCompletion.setUser(userToSave);
+        userToSave.setUserChatCompletion(chamberUserChatCompletion);
+        final var chamberUserCompletion = new ChamberUserCompletion();
+        chamberUserCompletion.setUser(userToSave);
+        userToSave.setUserCompletion(chamberUserCompletion);
         // Save the user
         chamberUserRepository.save(userToSave);
     }
@@ -52,7 +55,7 @@ public class ChamberUserLogic {
     public ChamberUser findByUsername(final String username) throws UsernameNotFoundException {
         final var user = chamberUserRepository.findByUsername(username);
         if (user == null) {
-            throw new UsernameNotFoundException(LOG_PREFIX_TIME_CHAMBER + "User not found");
+            throw new UsernameNotFoundException("User not found");
         }
         return user;
     }

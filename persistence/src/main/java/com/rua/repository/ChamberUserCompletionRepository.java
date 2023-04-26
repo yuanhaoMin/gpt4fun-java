@@ -1,14 +1,14 @@
 package com.rua.repository;
 
-import com.rua.entity.ChamberUserChatLog;
+import com.rua.entity.ChamberUserCompletion;
 import jakarta.annotation.Nullable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ChamberUserChatLogRepository extends JpaRepository<ChamberUserChatLog, Long> {
+public interface ChamberUserCompletionRepository extends JpaRepository<ChamberUserCompletion, Long> {
 
     @Nullable
-    ChamberUserChatLog findByUserId(Long userId);
+    ChamberUserCompletion findByUserId(Long userId);
 
 }

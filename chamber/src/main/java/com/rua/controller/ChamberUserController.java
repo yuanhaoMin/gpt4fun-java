@@ -1,7 +1,6 @@
 package com.rua.controller;
 
 import com.rua.ChamberUserPrincipal;
-import com.rua.constant.ChamberPathConstants;
 import com.rua.model.request.ChamberUserLoginRequestDto;
 import com.rua.model.request.ChamberUserRegisterRequestDto;
 import com.rua.service.ChamberUserService;
@@ -14,10 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.rua.constant.ChamberPathConstants.CHAMBER_USER_LOGIN_PATH;
-import static com.rua.constant.ChamberPathConstants.CHAMBER_USER_REGISTER_PATH;
+import static com.rua.constant.ChamberPathConstants.*;
 
-@RequestMapping(value = ChamberPathConstants.CHAMBER_USER_CONTROLLER_PATH)
+@RequestMapping(value = CHAMBER_USER_CONTROLLER_PATH)
 @RequiredArgsConstructor
 @RestController
 public class ChamberUserController {

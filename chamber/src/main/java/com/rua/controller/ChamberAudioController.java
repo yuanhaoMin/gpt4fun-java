@@ -1,6 +1,5 @@
 package com.rua.controller;
 
-import com.rua.constant.ChamberPathConstants;
 import com.rua.model.request.ChamberTranscriptionRequestDto;
 import com.rua.model.response.OpenAITranscriptionResponseDto;
 import com.rua.service.ChamberAudioService;
@@ -11,9 +10,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.rua.constant.ChamberPathConstants.CHAMBER_AUDIO_CONTROLLER_PATH;
 import static com.rua.constant.ChamberPathConstants.CHAMBER_AUDIO_TRANSCRIPTION_PATH;
 
-@RequestMapping(value = ChamberPathConstants.CHAMBER_AUDIO_CONTROLLER_PATH)
+@RequestMapping(value = CHAMBER_AUDIO_CONTROLLER_PATH)
 @RequiredArgsConstructor
 @RestController
 public class ChamberAudioController {

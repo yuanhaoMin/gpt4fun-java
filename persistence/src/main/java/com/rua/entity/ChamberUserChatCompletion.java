@@ -12,14 +12,13 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "chamber_user_chat_log")
-public class ChamberUserChatLog {
+@Table(name = "chamber_user_chat_completion")
+public class ChamberUserChatCompletion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // No cascade type is specified here because we don't want to modify the user when we modify the chat log
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private ChamberUser user;
