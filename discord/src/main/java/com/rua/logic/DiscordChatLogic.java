@@ -9,7 +9,6 @@ import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.rua.util.SharedDataUtils.*;
@@ -25,7 +24,9 @@ public class DiscordChatLogic {
     @Nonnull
     public DiscordGuildChatLog findByGuildId(final String guildId) {
         final var guildChatLog = discordGuildChatLogRepository.findByGuildId(guildId);
-        return guildChatLog != null ? guildChatLog : new DiscordGuildChatLog();
+        return guildChatLog != null ?
+                guildChatLog :
+                new DiscordGuildChatLog();
     }
 
     public void resetChatHistory(final String guildId) {
@@ -38,8 +39,7 @@ public class DiscordChatLogic {
 
     @Nonnull
     public List<OpenAIChatCompletionMessage> retrieveHistoryMessages(@Nonnull final DiscordGuildChatLog guildChatLog) {
-        final var historyMessages = parseJsonToList(guildChatLog.getMessages(), OpenAIChatCompletionMessage.class);
-        return historyMessages != null ? historyMessages : new ArrayList<>();
+        return parseJsonToList(guildChatLog.getMessages(), OpenAIChatCompletionMessage.class);
     }
 
     public void updateDiscordGuildChatLog(@Nonnull final DiscordGuildChatLog guildChatLog,

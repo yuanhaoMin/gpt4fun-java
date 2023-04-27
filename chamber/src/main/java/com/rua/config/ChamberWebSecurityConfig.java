@@ -41,7 +41,9 @@ public class ChamberWebSecurityConfig {
                                 // Permit all user related requests
                                 CHAMBER_USER_CONTROLLER_PATH + "/**",
                                 // Permit chat completion with stream requests since SSE does not support auth
-                                CHAMBER_CHAT_COMPLETION_CONTROLLER_PATH + CHAMBER_CHAT_COMPLETION_WITH_STREAM_PATH) //
+                                CHAMBER_CHAT_COMPLETION_CONTROLLER_PATH + CHAMBER_CHAT_COMPLETION_CHAT_COMPLETION_WITH_STREAM_PATH,
+                                // Permit completion with stream requests since SSE does not support auth
+                                CHAMBER_COMPLETION_CONTROLLER_PATH + CHAMBER_COMPLETION_COMPLETION_WITH_STREAM_PATH) //
                         .permitAll() // Permit all user related requests
                         .anyRequest().authenticated()) // Other requests must be authenticated
                 .cors() // Cors must be enabled with custom CorsConfigurationSource to allow all origins

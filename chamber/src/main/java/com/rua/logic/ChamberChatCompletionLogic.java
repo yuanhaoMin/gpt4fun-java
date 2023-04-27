@@ -31,7 +31,9 @@ public class ChamberChatCompletionLogic {
             throws UsernameNotFoundException {
         final var user = chamberUserLogic.findByUsername(username);
         final var userChatCompletion = chamberUserChatCompletionRepository.findByUserId(user.getId());
-        return userChatCompletion != null ? userChatCompletion : new ChamberUserChatCompletion();
+        return userChatCompletion != null ?
+                userChatCompletion :
+                new ChamberUserChatCompletion();
     }
 
     public void resetChatHistory(final String username) throws UsernameNotFoundException {

@@ -43,16 +43,17 @@ public class ChamberChatCompletionService {
         final var userCompletion = chamberCompletionLogic.findUserCompletionByUsername(username);
         final var model = userCompletion.getModel();
         final var userMessage = userCompletion.getMessage();
+        // TODO Add validation, model must be supported completion model
         if (isNullOrEmpty(model)) {
-            log.error(LOG_PREFIX_TIME_CHAMBER + "Unable to complete chat for {} due to empty model", username);
+            log.error(LOG_PREFIX_TIME_CHAMBER + "Unable to create chat completion for {} due to empty model", username);
             final var errorResponse = ChamberChatCompletionWithStreamResponseDto.builder() //
                     .content("No model found") //
                     .hasEnd(true) //
                     .build();
             return Flux.just(errorResponse);
         } else if (isNullOrEmpty(userMessage)) {
-            log.error(LOG_PREFIX_TIME_CHAMBER + "Unable to complete chat between {} and {} due to empty message",
-                    username, model);
+            log.error(LOG_PREFIX_TIME_CHAMBER + "Unable to create chat completion for {} due to empty message",
+                    username);
             final var errorResponse = ChamberChatCompletionWithStreamResponseDto.builder() //
                     .content("No message found") //
                     .hasEnd(true) //
@@ -61,9 +62,9 @@ public class ChamberChatCompletionService {
         }
         final var chatCompletionRequest = ChamberChatCompletionWithoutStreamRequestBo.builder() //
                 .model(model) //
-                .temperature(userCompletion.getTemperature()) //
-                .username(username) //
                 .userMessage(userMessage) //
+                .username(username) //
+                .temperature(userCompletion.getTemperature()) //
                 .build();
         final var messages = chamberChatCompletionLogic.retrieveHistoryMessages(userChatCompletion);
         // Add user message for this time prompt
@@ -97,14 +98,15 @@ public class ChamberChatCompletionService {
             return sendChatCompletionRequestWithoutStream(userChatCompletion, request, messages);
         } catch (FeignException.BadRequest e) {
             final var errorLog = e.toString();
-            log.error(LOG_PREFIX_TIME_CHAMBER + "Unable to complete chat between {} and {} due to bad request: {}",
+            log.error(
+                    LOG_PREFIX_TIME_CHAMBER + "Unable to create chat completion between {} and {} due to bad request: {}",
                     username, model, errorLog);
             resetChatHistory(username);
             return CHAT_COMPLETION_BAD_REQUEST;
         } catch (RetryableException e) {
             final var errorLog = e.toString();
             log.error(
-                    LOG_PREFIX_TIME_CHAMBER + "Unable to complete chat between {} and {} due to feign retryable error: {}",
+                    LOG_PREFIX_TIME_CHAMBER + "Unable to create chat completion between {} and {} due to feign retryable error: {}",
                     username, model, errorLog);
             return CHAT_COMPLETION_READ_TIME_OUT;
         }
@@ -112,36 +114,30 @@ public class ChamberChatCompletionService {
 
     public String resetChatHistory(final String username) {
         chamberChatCompletionLogic.resetChatHistory(username);
-        log.info(LOG_PREFIX_TIME_CHAMBER + "Chat history reset for {}", username);
+        log.info(LOG_PREFIX_TIME_CHAMBER + "Reset chat history for {}", username);
         return RESET_CHAT_HISTORY_SUCCESS;
     }
 
     public String updateSystemMessage(final String username, final String systemMessageContent) {
         chamberChatCompletionLogic.updateSystemMessageAndPersist(username, systemMessageContent);
-        log.info(LOG_PREFIX_TIME_CHAMBER + "System message updated for {}", username);
+        log.info(LOG_PREFIX_TIME_CHAMBER + "Updated system message for {}", username);
         return String.format(SET_SYSTEM_MESSAGE_SUCCESS, systemMessageContent);
-    }
-
-    private OpenAIChatCompletionRequestDto createOpenAIChatCompletionRequest(
-            final ChamberChatCompletionWithoutStreamRequestBo request, final List<OpenAIChatCompletionMessage> messages,
-            final boolean useStream) {
-        return OpenAIChatCompletionRequestDto.builder().model(request.model()).messages(messages).useStream(useStream)
-                .temperature(request.temperature()).build();
     }
 
     @Nonnull
     private ChamberChatCompletionWithStreamResponseDto extractAndCollectResponseMessage(
             final List<String> collectedMessages, final String openAIResponse) {
-        if (openAIResponse.equals(END_OF_CHAT_COMPLETION_STREAM)) {
+        if (openAIResponse.equals(END_OF_STREAM)) {
             return ChamberChatCompletionWithStreamResponseDto.builder() //
-                    .content(END_OF_CHAT_COMPLETION_STREAM) //
+                    .content(END_OF_STREAM) //
                     .hasEnd(true) //
                     .build();
         }
         final var openAIChatCompletionWithStreamResponseDto = parseJsonToObject(openAIResponse,
                 OpenAIChatCompletionWithStreamResponseDto.class);
-        final var messageContent = openAIChatCompletionWithStreamResponseDto != null ? openAIChatCompletionWithStreamResponseDto.choices()
-                .get(0).message().content() : "";
+        final var messageContent = openAIChatCompletionWithStreamResponseDto != null ?
+                openAIChatCompletionWithStreamResponseDto.choices().get(0).message().content() :
+                "";
         if (messageContent != null) {
             collectedMessages.add(messageContent);
         }
@@ -164,6 +160,17 @@ public class ChamberChatCompletionService {
         return responseContent;
     }
 
+    private OpenAIChatCompletionRequestDto createOpenAIChatCompletionRequest(
+            final ChamberChatCompletionWithoutStreamRequestBo request, final List<OpenAIChatCompletionMessage> messages,
+            final boolean useStream) {
+        return OpenAIChatCompletionRequestDto.builder() //
+                .model(request.model()) //
+                .messages(messages) //
+                .temperature(request.temperature()) //
+                .useStream(useStream) //
+                .build();
+    }
+
     private void processChatCompletionResponse(final long startTimeMillis,
                                                final List<OpenAIChatCompletionMessage> messages,
                                                final String responseContent,
@@ -177,11 +184,10 @@ public class ChamberChatCompletionService {
         final var endTimeMillis = System.currentTimeMillis();
         final var executionTimeSeconds = SharedFormatUtils.convertMillisToStringWithMaxTwoFractionDigits(
                 endTimeMillis - startTimeMillis);
-        log.info(LOG_PREFIX_TIME_CHAMBER + "Response received within {}s for chat between {} and {}",
-                executionTimeSeconds, username, model);
+        log.info(LOG_PREFIX_TIME_CHAMBER + "Received chat completion response within {}s", executionTimeSeconds);
         chamberChatCompletionLogic.updateChamberUserChatCompletion(userChatCompletion, messages, request);
-        log.info(LOG_PREFIX_TIME_CHAMBER + "Chat completed between {} and {} with temperature = {}", username, model,
-                temperature);
+        log.info(LOG_PREFIX_TIME_CHAMBER + "Created chat completion between {} and {} with temperature = {}", username,
+                model, temperature);
     }
 
 }

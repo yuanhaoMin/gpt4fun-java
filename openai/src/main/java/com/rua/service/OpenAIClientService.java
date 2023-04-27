@@ -2,6 +2,7 @@ package com.rua.service;
 
 import com.rua.OpenAIFeignClient;
 import com.rua.model.request.OpenAIChatCompletionRequestDto;
+import com.rua.model.request.OpenAICompletionRequestDto;
 import com.rua.model.request.OpenAITranscriptionRequestDto;
 import com.rua.model.response.OpenAIChatCompletionWithoutStreamResponseDto;
 import com.rua.model.response.OpenAITranscriptionResponseDto;
@@ -51,6 +52,23 @@ public class OpenAIClientService {
             throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = false");
         }
         return openAIFeignClient.chatCompletionWithoutStream(request);
+    }
+
+    public Flux<String> completionWithStream(
+            final OpenAICompletionRequestDto request) {
+        if (!request.useStream()) {
+            throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = true");
+        }
+        final var webClient = WebClient.builder() //
+                .baseUrl(OPENAI_API_BASE_URL + OPENAI_API_COMPLETION_URL) //
+                .clientConnector(new ReactorClientHttpConnector(webHttpClient)) //
+                .build();
+        return webClient.post() //
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE) //
+                .header("Authorization", "Bearer " + openAIProperties.apiKey()) //
+                .body(BodyInserters.fromValue(request)) //
+                .retrieve() //
+                .bodyToFlux(String.class);
     }
 
     public OpenAITranscriptionResponseDto transcription(final OpenAITranscriptionRequestDto request) {

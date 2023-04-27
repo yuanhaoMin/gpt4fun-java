@@ -64,7 +64,8 @@ public class DiscordMessageCreateHandler implements DiscordEventHandler<MessageC
                 final var endTimeMillis = System.currentTimeMillis();
                 final var executionTimeSeconds = SharedFormatUtils.convertMillisToStringWithMaxTwoFractionDigits(
                         endTimeMillis - startTimeMillis);
-                log.info(LOG_PREFIX_DISCORD + "GPT3.5 chat completed in {}s in guild: {}", executionTimeSeconds,
+                log.info(LOG_PREFIX_DISCORD + "GPT3.5 chat completion created in {}s in guild: {}",
+                        executionTimeSeconds,
                         guildId);
                 return sendMessageToChannel(message, botResponse);
             } catch (FeignException.BadRequest e) {

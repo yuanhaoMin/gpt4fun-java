@@ -11,6 +11,7 @@ public class OpenAIConstants {
     // Url
     public static final String OPENAI_API_BASE_URL = "https://api.openai.com/v1";
     public static final String OPENAI_API_CHAT_COMPLETION_URL = "/chat/completions";
+    public static final String OPENAI_API_COMPLETION_URL = "/completions";
     public static final String OPENAI_API_TRANSCRIPTION_URL = "/audio/transcriptions";
 
     // Model
@@ -23,6 +24,6 @@ public class OpenAIConstants {
     public static final String CHAT_COMPLETION_ROLE_USER = "user";
 
     // Other
-    public static final String END_OF_CHAT_COMPLETION_STREAM = "[DONE]";
+    public static final String END_OF_STREAM = "[DONE]";
 
 }

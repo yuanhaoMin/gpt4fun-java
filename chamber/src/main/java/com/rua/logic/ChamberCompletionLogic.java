@@ -1,7 +1,7 @@
 package com.rua.logic;
 
 import com.rua.entity.ChamberUserCompletion;
-import com.rua.model.request.ChamberCompletionRequestBo;
+import com.rua.model.request.ChamberUpdateCompletionRequestBo;
 import com.rua.repository.ChamberUserCompletionRepository;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -16,9 +16,9 @@ public class ChamberCompletionLogic {
 
     private final ChamberUserCompletionRepository chamberUserCompletionRepository;
 
-    public void updateUserCompletionByUsername(final String username, final ChamberCompletionRequestBo request)
+    public void updateUserCompletionByUsername(final ChamberUpdateCompletionRequestBo request)
             throws UsernameNotFoundException {
-        final var user = chamberUserLogic.findByUsername(username);
+        final var user = chamberUserLogic.findByUsername(request.username());
         var userCompletion = chamberUserCompletionRepository.findByUserId(user.getId());
         if (userCompletion == null) {
             userCompletion = new ChamberUserCompletion();
@@ -34,7 +34,9 @@ public class ChamberCompletionLogic {
     public ChamberUserCompletion findUserCompletionByUsername(final String username) throws UsernameNotFoundException {
         final var user = chamberUserLogic.findByUsername(username);
         final var userCompletion = chamberUserCompletionRepository.findByUserId(user.getId());
-        return userCompletion != null ? userCompletion : new ChamberUserCompletion();
+        return userCompletion != null ?
+                userCompletion :
+                new ChamberUserCompletion();
     }
 
 }

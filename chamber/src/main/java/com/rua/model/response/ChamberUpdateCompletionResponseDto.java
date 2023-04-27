@@ -4,5 +4,5 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 
 @Builder
-public record ChamberCompletionResponseDto(@JsonProperty("responseMessage") String responseMessage) {
+public record ChamberUpdateCompletionResponseDto(@JsonProperty("responseMessage") String responseMessage) {
 }

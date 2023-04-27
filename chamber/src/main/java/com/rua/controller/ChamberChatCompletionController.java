@@ -25,7 +25,7 @@ public class ChamberChatCompletionController {
 
     private final ChamberChatCompletionService chamberChatCompletionService;
 
-    @PostMapping(value = CHAMBER_CHAT_COMPLETION_WITHOUT_STREAM_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = CHAMBER_CHAT_COMPLETION_CHAT_COMPLETION_WITHOUT_STREAM_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
     public ChamberChatCompletionWithoutStreamResponseDto chatCompletionWithoutStream(
             final Authentication authentication,
             @Valid @RequestBody final ChamberChatCompletionWithoutStreamRequestDto requestDto) {
@@ -41,7 +41,7 @@ public class ChamberChatCompletionController {
                 .build();
     }
 
-    @GetMapping(path = CHAMBER_CHAT_COMPLETION_WITH_STREAM_PATH, produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @GetMapping(path = CHAMBER_CHAT_COMPLETION_CHAT_COMPLETION_WITH_STREAM_PATH, produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ChamberChatCompletionWithStreamResponseDto> chatCompletionWithStream(
             @RequestParam(name = "username") final String username) {
         return chamberChatCompletionService.chatCompletionWithStream(username);

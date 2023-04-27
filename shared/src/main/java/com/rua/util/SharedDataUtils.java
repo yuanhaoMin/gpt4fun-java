@@ -63,7 +63,9 @@ public class SharedDataUtils {
     }
 
     public static String toStringNullSafe(Object object) {
-        return object != null ? object.toString() : "";
+        return object != null ?
+                object.toString() :
+                "";
     }
 
 }
