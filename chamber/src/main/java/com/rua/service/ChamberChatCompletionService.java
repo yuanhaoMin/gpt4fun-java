@@ -3,9 +3,10 @@ package com.rua.service;
 import com.rua.entity.ChamberUserChatCompletion;
 import com.rua.logic.ChamberChatCompletionLogic;
 import com.rua.logic.ChamberCompletionLogic;
-import com.rua.model.request.ChamberChatCompletionRequestBo;
+import com.rua.model.request.ChamberChatCompletionWithoutStreamRequestBo;
 import com.rua.model.request.OpenAIChatCompletionMessage;
 import com.rua.model.request.OpenAIChatCompletionRequestDto;
+import com.rua.model.response.ChamberChatCompletionWithStreamResponseDto;
 import com.rua.model.response.OpenAIChatCompletionWithStreamResponseDto;
 import com.rua.util.SharedFormatUtils;
 import feign.FeignException;
@@ -14,6 +15,7 @@ import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
@@ -36,21 +38,28 @@ public class ChamberChatCompletionService {
     private final ChamberCompletionLogic chamberCompletionLogic;
 
     // TODO: refactor all methods, move some methods to ChamberChatCompletionLogic
-    public Flux<String> chatCompletionWithStream(final String username) {
+    public Flux<ChamberChatCompletionWithStreamResponseDto> chatCompletionWithStream(final String username) {
         final var userChatCompletion = chamberChatCompletionLogic.findUserChatCompletionByUsername(username);
         final var userCompletion = chamberCompletionLogic.findUserCompletionByUsername(username);
         final var model = userCompletion.getModel();
         final var userMessage = userCompletion.getMessage();
         if (isNullOrEmpty(model)) {
-            log.error(LOG_PREFIX_TIME_CHAMBER + "Unable to complete chat for {} due to empty model",
-                    username);
-            return Flux.just("No model found");
+            log.error(LOG_PREFIX_TIME_CHAMBER + "Unable to complete chat for {} due to empty model", username);
+            final var errorResponse = ChamberChatCompletionWithStreamResponseDto.builder() //
+                    .content("No model found") //
+                    .hasEnd(true) //
+                    .build();
+            return Flux.just(errorResponse);
         } else if (isNullOrEmpty(userMessage)) {
             log.error(LOG_PREFIX_TIME_CHAMBER + "Unable to complete chat between {} and {} due to empty message",
                     username, model);
-            return Flux.just("No message found");
+            final var errorResponse = ChamberChatCompletionWithStreamResponseDto.builder() //
+                    .content("No message found") //
+                    .hasEnd(true) //
+                    .build();
+            return Flux.just(errorResponse);
         }
-        final var chatCompletionRequest = ChamberChatCompletionRequestBo.builder() //
+        final var chatCompletionRequest = ChamberChatCompletionWithoutStreamRequestBo.builder() //
                 .model(model) //
                 .temperature(userCompletion.getTemperature()) //
                 .username(username) //
@@ -63,14 +72,21 @@ public class ChamberChatCompletionService {
                 true);
         final List<String> collectedMessages = new ArrayList<>();
         final var startTimeMillis = System.currentTimeMillis();
-        return openAIClientService.chatCompletionWithStream(openAIChatCompletionRequest) //
-                .map(response -> extractAndCollectResponseMessage(collectedMessages, response)) //
-                .filter(responseMessage -> !responseMessage.isEmpty()) //
-                .doOnComplete(() -> processChatCompletionResponse(startTimeMillis, messages,
-                        String.join("", collectedMessages), userChatCompletion, chatCompletionRequest));
+        try {
+            return openAIClientService.chatCompletionWithStream(openAIChatCompletionRequest) //
+                    .map(openAIResponse -> extractAndCollectResponseMessage(collectedMessages, openAIResponse)) //
+                    .filter(response -> response.content() != null)  //
+                    .doOnComplete(() -> processChatCompletionResponse(startTimeMillis, messages,
+                            String.join("", collectedMessages), userChatCompletion, chatCompletionRequest));
+        } catch (WebClientResponseException.BadRequest e) {
+            return Flux.just(ChamberChatCompletionWithStreamResponseDto.builder() //
+                    .content(CHAT_COMPLETION_BAD_REQUEST) //
+                    .hasEnd(true) //
+                    .build());
+        }
     }
 
-    public String chatCompletionWithoutStream(final ChamberChatCompletionRequestBo request) {
+    public String chatCompletionWithoutStream(final ChamberChatCompletionWithoutStreamRequestBo request) {
         final var username = request.username();
         final var model = request.model();
         final var userChatCompletion = chamberChatCompletionLogic.findUserChatCompletionByUsername(username);
@@ -107,29 +123,36 @@ public class ChamberChatCompletionService {
     }
 
     private OpenAIChatCompletionRequestDto createOpenAIChatCompletionRequest(
-            final ChamberChatCompletionRequestBo request, final List<OpenAIChatCompletionMessage> messages,
+            final ChamberChatCompletionWithoutStreamRequestBo request, final List<OpenAIChatCompletionMessage> messages,
             final boolean useStream) {
         return OpenAIChatCompletionRequestDto.builder().model(request.model()).messages(messages).useStream(useStream)
                 .temperature(request.temperature()).build();
     }
 
     @Nonnull
-    private String extractAndCollectResponseMessage(final List<String> collectedMessages, final String response) {
-        if (response.equals(END_OF_CHAT_COMPLETION_STREAM)) {
-            return response;
+    private ChamberChatCompletionWithStreamResponseDto extractAndCollectResponseMessage(
+            final List<String> collectedMessages, final String openAIResponse) {
+        if (openAIResponse.equals(END_OF_CHAT_COMPLETION_STREAM)) {
+            return ChamberChatCompletionWithStreamResponseDto.builder() //
+                    .content(END_OF_CHAT_COMPLETION_STREAM) //
+                    .hasEnd(true) //
+                    .build();
         }
-        final var responseDto = parseJsonToObject(response, OpenAIChatCompletionWithStreamResponseDto.class);
-        final var responseMessage = responseDto != null ? responseDto.choices().get(0).message().content() : "";
-        if (responseMessage == null) {
-            return "";
-        } else {
-            collectedMessages.add(responseMessage);
-            return responseMessage;
+        final var openAIChatCompletionWithStreamResponseDto = parseJsonToObject(openAIResponse,
+                OpenAIChatCompletionWithStreamResponseDto.class);
+        final var messageContent = openAIChatCompletionWithStreamResponseDto != null ? openAIChatCompletionWithStreamResponseDto.choices()
+                .get(0).message().content() : "";
+        if (messageContent != null) {
+            collectedMessages.add(messageContent);
         }
+        return ChamberChatCompletionWithStreamResponseDto.builder() //
+                .content(messageContent) //
+                .hasEnd(false) //
+                .build();
     }
 
     private String sendChatCompletionRequestWithoutStream(final ChamberUserChatCompletion userChatCompletion,
-                                                          final ChamberChatCompletionRequestBo request,
+                                                          final ChamberChatCompletionWithoutStreamRequestBo request,
                                                           final List<OpenAIChatCompletionMessage> messages) {
         final var startTimeMillis = System.currentTimeMillis();
         final var openAIChatCompletionRequest = createOpenAIChatCompletionRequest(request, messages, false);
@@ -145,7 +168,7 @@ public class ChamberChatCompletionService {
                                                final List<OpenAIChatCompletionMessage> messages,
                                                final String responseContent,
                                                final ChamberUserChatCompletion userChatCompletion,
-                                               final ChamberChatCompletionRequestBo request) {
+                                               final ChamberChatCompletionWithoutStreamRequestBo request) {
         final var username = request.username();
         final var model = request.model();
         final var temperature = request.temperature();

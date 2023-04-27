@@ -1,7 +1,7 @@
 package com.rua.logic;
 
 import com.rua.entity.ChamberUserChatCompletion;
-import com.rua.model.request.ChamberChatCompletionRequestBo;
+import com.rua.model.request.ChamberChatCompletionWithoutStreamRequestBo;
 import com.rua.model.request.OpenAIChatCompletionMessage;
 import com.rua.repository.ChamberUserChatCompletionRepository;
 import com.rua.util.OpenAIChatCompletionLogic;
@@ -51,7 +51,7 @@ public class ChamberChatCompletionLogic {
 
     public void updateChamberUserChatCompletion(@Nonnull final ChamberUserChatCompletion userChatCompletion,
                                                 final List<OpenAIChatCompletionMessage> historyMessages,
-                                                final ChamberChatCompletionRequestBo request) {
+                                                final ChamberChatCompletionWithoutStreamRequestBo request) {
         openAIChatCompletionLogic.shiftSystemMessageToHistoryEnd(historyMessages);
         userChatCompletion.setLastChatTime(getCurrentTimeInParis());
         userChatCompletion.setMessages(convertObjectToJson(historyMessages));
