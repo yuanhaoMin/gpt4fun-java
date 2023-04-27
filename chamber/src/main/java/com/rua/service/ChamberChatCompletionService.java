@@ -43,7 +43,7 @@ public class ChamberChatCompletionService {
         final var userCompletion = chamberCompletionLogic.findUserCompletionByUsername(username);
         final var model = userCompletion.getModel();
         final var userMessage = userCompletion.getMessage();
-        // TODO Add validation, model must be supported completion model
+        // TODO !!!Add validation, model must be supported completion model
         if (isNullOrEmpty(model)) {
             log.error(LOG_PREFIX_TIME_CHAMBER + "Unable to create chat completion for {} due to empty model", username);
             final var errorResponse = ChamberChatCompletionWithStreamResponseDto.builder() //
