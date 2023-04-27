@@ -14,6 +14,8 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
 
+import static com.rua.constant.OpenAIConstants.OPENAI_API_BASE_URL;
+
 @Configuration
 @EnableConfigurationProperties(OpenAIWebFluxProperties.class)
 @PropertySource("classpath:webflux.properties")
@@ -26,6 +28,7 @@ public class OpenAIWebFluxClientConfig {
     @DependsOn("webHttpClient")
     public WebClient webClient(final HttpClient httpClient) {
         return WebClient.builder() //
+                .baseUrl(OPENAI_API_BASE_URL) //
                 .clientConnector(new ReactorClientHttpConnector(httpClient)) //
                 .build();
     }

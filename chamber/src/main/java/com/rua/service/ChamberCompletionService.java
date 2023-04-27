@@ -5,6 +5,7 @@ import com.rua.model.request.ChamberUpdateCompletionRequestBo;
 import com.rua.model.request.OpenAICompletionRequestDto;
 import com.rua.model.response.ChamberCompletionWithStreamResponseDto;
 import com.rua.model.response.OpenAICompletionWithStreamResponseDto;
+import com.rua.property.OpenAIProperties;
 import com.rua.util.SharedFormatUtils;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,8 @@ import static com.rua.util.SharedDataUtils.parseJsonToObject;
 public class ChamberCompletionService {
 
     private final OpenAIClientService openAIClientService;
+
+    private final OpenAIProperties openAIProperties;
 
     private final ChamberCompletionLogic chamberCompletionLogic;
 
@@ -52,6 +55,8 @@ public class ChamberCompletionService {
         final var openAICompletionRequest = OpenAICompletionRequestDto.builder() //
                 .model(model) //
                 .prompt(prompt) //
+                // Must override default 16 limit
+                .maxTokens(openAIProperties.maxTokensCompletion()) //
                 .useStream(true) //
                 .temperature(userCompletion.getTemperature()) //
                 .build();

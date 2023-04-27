@@ -34,7 +34,7 @@ public class OpenAIClientService {
             throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = true");
         }
         return webClient.post() //
-                .uri(OPENAI_API_BASE_URL + OPENAI_API_CHAT_COMPLETION_URL) //
+                .uri(OPENAI_API_CHAT_COMPLETION_URL) //
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE) //
                 .header("Authorization", "Bearer " + openAIProperties.apiKey()) //
                 .body(BodyInserters.fromValue(request)) //
@@ -56,7 +56,7 @@ public class OpenAIClientService {
             throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = true");
         }
         return webClient.post() //
-                .uri(OPENAI_API_BASE_URL + OPENAI_API_COMPLETION_URL) //
+                .uri(OPENAI_API_COMPLETION_URL) //
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE) //
                 .header("Authorization", "Bearer " + openAIProperties.apiKey()) //
                 .body(BodyInserters.fromValue(request)) //
