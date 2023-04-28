@@ -16,7 +16,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-import static com.rua.constant.ChamberControllerConstants.CHAMBER_USER_CONTROLLER_PATH;
+import static com.rua.constant.ChamberPathConstants.*;
 
 @Configuration
 @EnableWebSecurity
@@ -37,7 +37,13 @@ public class ChamberWebSecurityConfig {
                 .httpBasic() //
                 .and() //
                 .authorizeHttpRequests(request -> request //
-                        .requestMatchers(CHAMBER_USER_CONTROLLER_PATH + "/**") //
+                        .requestMatchers( //
+                                // Permit all user related requests
+                                CHAMBER_USER_CONTROLLER_PATH + "/**",
+                                // Permit chat completion with stream requests since SSE does not support auth
+                                CHAMBER_CHAT_COMPLETION_CONTROLLER_PATH + CHAMBER_CHAT_COMPLETION_CHAT_COMPLETION_WITH_STREAM_PATH,
+                                // Permit completion with stream requests since SSE does not support auth
+                                CHAMBER_COMPLETION_CONTROLLER_PATH + CHAMBER_COMPLETION_COMPLETION_WITH_STREAM_PATH) //
                         .permitAll() // Permit all user related requests
                         .anyRequest().authenticated()) // Other requests must be authenticated
                 .cors() // Cors must be enabled with custom CorsConfigurationSource to allow all origins
@@ -57,9 +63,11 @@ public class ChamberWebSecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         final var source = new UrlBasedCorsConfigurationSource();
         final var configuration = new CorsConfiguration();
+        // This is needed when client is using basic auth
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("*"));
         configuration.setAllowedOrigins(List.of("*"));
+        // Allow any mapping
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }

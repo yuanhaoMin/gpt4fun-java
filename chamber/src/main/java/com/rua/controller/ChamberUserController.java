@@ -1,7 +1,6 @@
 package com.rua.controller;
 
 import com.rua.ChamberUserPrincipal;
-import com.rua.constant.ChamberControllerConstants;
 import com.rua.model.request.ChamberUserLoginRequestDto;
 import com.rua.model.request.ChamberUserRegisterRequestDto;
 import com.rua.service.ChamberUserService;
@@ -14,19 +13,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@RequestMapping(value = ChamberControllerConstants.CHAMBER_USER_CONTROLLER_PATH)
+import static com.rua.constant.ChamberPathConstants.*;
+
+@RequestMapping(value = CHAMBER_USER_CONTROLLER_PATH)
 @RequiredArgsConstructor
 @RestController
 public class ChamberUserController {
 
     private final ChamberUserService chamberUserService;
 
-    @PostMapping(value = "/login", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = CHAMBER_USER_LOGIN_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
     public ChamberUserPrincipal login(@Valid @RequestBody final ChamberUserLoginRequestDto request) {
         return chamberUserService.login(request.username(), request.password());
     }
 
-    @PostMapping(value = "/register", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = CHAMBER_USER_REGISTER_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> register(@Valid @RequestBody final ChamberUserRegisterRequestDto request) {
         chamberUserService.register(request.username(), request.password());
         return ResponseEntity.ok("User created");

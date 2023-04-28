@@ -3,6 +3,8 @@ package com.rua.util;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -16,6 +18,7 @@ public class SharedDataUtils {
     private SharedDataUtils() {
     }
 
+    @Nonnull
     public static String convertObjectToJson(final Object object) {
         final ObjectMapper mapper = new ObjectMapper();
         try {
@@ -26,6 +29,7 @@ public class SharedDataUtils {
         }
     }
 
+    @Nonnull
     public static <T> List<T> parseJsonToList(final String json, final Class<T> targetType) {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
@@ -40,6 +44,7 @@ public class SharedDataUtils {
         }
     }
 
+    @Nullable
     public static <T> T parseJsonToObject(final String json, final Class<T> targetType) {
         final ObjectMapper mapper = new ObjectMapper();
         try {
@@ -58,7 +63,9 @@ public class SharedDataUtils {
     }
 
     public static String toStringNullSafe(Object object) {
-        return object != null ? object.toString() : "";
+        return object != null ?
+                object.toString() :
+                "";
     }
 
 }

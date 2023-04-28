@@ -4,5 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 
 @Builder
-public record ChamberResetChatHistoryResponseDto(@JsonProperty("responseMessage") String responseMessage) {
+public record ChamberResetChatHistoryResponseDto(
+        @JsonProperty("responseMessage") String responseMessage) {
 }

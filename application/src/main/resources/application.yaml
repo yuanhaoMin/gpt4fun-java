@@ -3,6 +3,10 @@ logging:
     com:
       rua:
         OpenAIClient: INFO # Set to Debug to log feign requests/responses
+    reactor:
+      netty:
+        http:
+          client: DEBUG # Debug WebClient
   org:
     springframework:
       web: DEBUG # Displays error logs of, for example, bad request

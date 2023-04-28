@@ -17,13 +17,13 @@ public class ChamberUserService {
 
     public ChamberUserPrincipal login(String username, String password) {
         final var authenticatedUser = chamberUserLogic.authenticateUser(username, password);
-        log.info(LOG_PREFIX_TIME_CHAMBER + "User {} logged in", username);
+        log.info(LOG_PREFIX_TIME_CHAMBER + "{} logged in", username);
         return authenticatedUser;
     }
 
     public void register(String username, String password) {
         chamberUserLogic.createUser(username, password);
-        log.info(LOG_PREFIX_TIME_CHAMBER + "User {} registered", username);
+        log.info(LOG_PREFIX_TIME_CHAMBER + "{} registered", username);
     }
 
 }

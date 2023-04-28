@@ -21,6 +21,10 @@ public class ChamberDelegatedAuthenticationEntryPoint implements AuthenticationE
         this.resolver = resolver;
     }
 
+    /**
+     * Delegates to {@link HandlerExceptionResolver} to handle {@link AuthenticationException}, in the end the exception
+     * is handled in {@link ChamberExceptionHandler#handleUnauthorizedException(AuthenticationException)}
+     */
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) {

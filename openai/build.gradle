@@ -3,6 +3,8 @@ plugins {
 }
 
 dependencies {
+    api "org.springframework.boot:spring-boot-starter-reactor-netty:${springBootVersion}"
+    api "org.springframework.boot:spring-boot-starter-webflux:${springBootVersion}"
     api "org.springframework.cloud:spring-cloud-starter-openfeign:${cloudOpenFeignVersion}"
 
     implementation "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
