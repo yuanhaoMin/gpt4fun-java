@@ -38,6 +38,8 @@ public class ChamberWebSecurityConfig {
                 .and() //
                 .authorizeHttpRequests(request -> request //
                         .requestMatchers( //
+                                // Permit requests to root path. For example, the every 5 minute health check in Azure
+                                "/",
                                 // Permit all user related requests
                                 CHAMBER_USER_CONTROLLER_PATH + "/**",
                                 // Permit chat completion with stream requests since SSE does not support auth
