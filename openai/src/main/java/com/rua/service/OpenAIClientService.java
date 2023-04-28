@@ -6,7 +6,6 @@ import com.rua.model.request.OpenAICompletionRequestDto;
 import com.rua.model.request.OpenAITranscriptionRequestDto;
 import com.rua.model.response.OpenAIChatCompletionWithoutStreamResponseDto;
 import com.rua.model.response.OpenAITranscriptionResponseDto;
-import com.rua.property.OpenAIProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -23,8 +22,6 @@ public class OpenAIClientService {
 
     private final OpenAIFeignClient openAIFeignClient;
 
-    private final OpenAIProperties openAIProperties;
-
     // Do not create new webClient for each request
     private final WebClient webClient;
 
@@ -36,7 +33,6 @@ public class OpenAIClientService {
         return webClient.post() //
                 .uri(OPENAI_API_CHAT_COMPLETION_URL) //
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE) //
-                .header("Authorization", "Bearer " + openAIProperties.apiKey()) //
                 .body(BodyInserters.fromValue(request)) //
                 .retrieve() //
                 .bodyToFlux(String.class);
@@ -58,7 +54,6 @@ public class OpenAIClientService {
         return webClient.post() //
                 .uri(OPENAI_API_COMPLETION_URL) //
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE) //
-                .header("Authorization", "Bearer " + openAIProperties.apiKey()) //
                 .body(BodyInserters.fromValue(request)) //
                 .retrieve() //
                 .bodyToFlux(String.class);

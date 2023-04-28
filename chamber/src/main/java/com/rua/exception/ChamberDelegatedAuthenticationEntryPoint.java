@@ -21,7 +21,10 @@ public class ChamberDelegatedAuthenticationEntryPoint implements AuthenticationE
         this.resolver = resolver;
     }
 
-    // TODO all error lead to 401 now, fix it
+    /**
+     * Delegates to {@link HandlerExceptionResolver} to handle {@link AuthenticationException}, in the end the exception
+     * is handled in {@link ChamberExceptionHandler#handleUnauthorizedException(AuthenticationException)}
+     */
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
                          AuthenticationException authException) {
