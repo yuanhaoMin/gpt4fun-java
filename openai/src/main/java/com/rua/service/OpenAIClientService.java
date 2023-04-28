@@ -6,6 +6,7 @@ import com.rua.model.request.OpenAICompletionRequestDto;
 import com.rua.model.request.OpenAITranscriptionRequestDto;
 import com.rua.model.response.OpenAIChatCompletionWithoutStreamResponseDto;
 import com.rua.model.response.OpenAITranscriptionResponseDto;
+import io.netty.handler.timeout.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -13,6 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
+import reactor.util.retry.Retry;
+
+import java.time.Duration;
 
 import static com.rua.constant.OpenAIConstants.*;
 
@@ -25,8 +29,7 @@ public class OpenAIClientService {
     // Do not create new webClient for each request
     private final WebClient webClient;
 
-    public Flux<String> chatCompletionWithStream(
-            final OpenAIChatCompletionRequestDto request) {
+    public Flux<String> chatCompletionWithStream(final OpenAIChatCompletionRequestDto request) {
         if (!request.useStream()) {
             throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = true");
         }
@@ -35,7 +38,9 @@ public class OpenAIClientService {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE) //
                 .body(BodyInserters.fromValue(request)) //
                 .retrieve() //
-                .bodyToFlux(String.class);
+                .bodyToFlux(String.class) //
+                .retryWhen(Retry.backoff(2, Duration.ofMillis(25)) //
+                        .filter(TimeoutException.class::isInstance));
     }
 
     public OpenAIChatCompletionWithoutStreamResponseDto chatCompletionWithoutStream(
@@ -46,8 +51,7 @@ public class OpenAIClientService {
         return openAIFeignClient.chatCompletionWithoutStream(request);
     }
 
-    public Flux<String> completionWithStream(
-            final OpenAICompletionRequestDto request) {
+    public Flux<String> completionWithStream(final OpenAICompletionRequestDto request) {
         if (!request.useStream()) {
             throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = true");
         }
@@ -56,7 +60,9 @@ public class OpenAIClientService {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE) //
                 .body(BodyInserters.fromValue(request)) //
                 .retrieve() //
-                .bodyToFlux(String.class);
+                .bodyToFlux(String.class) //
+                .retryWhen(Retry.backoff(2, Duration.ofMillis(25)) //
+                        .filter(TimeoutException.class::isInstance));
     }
 
     public OpenAITranscriptionResponseDto transcription(final OpenAITranscriptionRequestDto request) {
