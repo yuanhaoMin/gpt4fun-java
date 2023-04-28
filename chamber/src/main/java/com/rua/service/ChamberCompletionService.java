@@ -75,9 +75,7 @@ public class ChamberCompletionService {
     }
 
     public String updateUserCompletion(final ChamberUpdateCompletionRequestBo request) {
-        final var username = request.username();
         chamberCompletionLogic.updateUserCompletionByUsername(request);
-        log.info(LOG_PREFIX_TIME_CHAMBER + "Updated completion data for {}", username);
         return "Success";
     }
 
