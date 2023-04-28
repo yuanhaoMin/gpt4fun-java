@@ -61,7 +61,6 @@ public class ChamberChatCompletionLogic {
         if (userChatCompletion.getUser() == null) {
             userChatCompletion.setUser(chamberUserLogic.findByUsername(request.username()));
         }
-        // TODO: count request length, maybe a map of localdatetime and count
         chamberUserChatCompletionRepository.save(userChatCompletion);
     }
 

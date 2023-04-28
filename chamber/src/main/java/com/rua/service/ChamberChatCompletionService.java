@@ -41,9 +41,13 @@ public class ChamberChatCompletionService {
     public Flux<ChamberChatCompletionWithStreamResponseDto> chatCompletionWithStream(final String username) {
         final var userChatCompletion = chamberChatCompletionLogic.findUserChatCompletionByUsername(username);
         final var userCompletion = chamberCompletionLogic.findUserCompletionByUsername(username);
-        final var model = userCompletion.getModel();
+        // TODO: use authorization
+        final var allowedUserName = List.of("liuwentao@qiankuniot.com");
+        final var model = allowedUserName.contains(username) ?
+                "gpt-4" :
+                userCompletion.getModel();
         final var userMessage = userCompletion.getMessage();
-        // TODO !!!Add validation, model must be supported completion model
+        // TODO !!!Add validation, model must be supported!
         if (isNullOrEmpty(model)) {
             log.error(LOG_PREFIX_TIME_CHAMBER + "Unable to create chat completion for {} due to empty model", username);
             final var errorResponse = ChamberChatCompletionWithStreamResponseDto.builder() //
