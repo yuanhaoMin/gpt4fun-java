@@ -6,7 +6,6 @@ import com.rua.model.request.OpenAICompletionRequestDto;
 import com.rua.model.request.OpenAITranscriptionRequestDto;
 import com.rua.model.response.OpenAIChatCompletionWithoutStreamResponseDto;
 import com.rua.model.response.OpenAITranscriptionResponseDto;
-import io.netty.handler.timeout.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -14,9 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
-import reactor.util.retry.Retry;
-
-import java.time.Duration;
 
 import static com.rua.constant.OpenAIConstants.*;
 
@@ -33,14 +29,13 @@ public class OpenAIClientService {
         if (!request.useStream()) {
             throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = true");
         }
+        // TODO: Override to increase readTime if model is GPT-4
         return webClient.post() //
                 .uri(OPENAI_API_CHAT_COMPLETION_URL) //
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE) //
                 .body(BodyInserters.fromValue(request)) //
                 .retrieve() //
-                .bodyToFlux(String.class) //
-                .retryWhen(Retry.backoff(2, Duration.ofMillis(25)) //
-                        .filter(TimeoutException.class::isInstance));
+                .bodyToFlux(String.class);
     }
 
     public OpenAIChatCompletionWithoutStreamResponseDto chatCompletionWithoutStream(
@@ -60,9 +55,7 @@ public class OpenAIClientService {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE) //
                 .body(BodyInserters.fromValue(request)) //
                 .retrieve() //
-                .bodyToFlux(String.class) //
-                .retryWhen(Retry.backoff(2, Duration.ofMillis(25)) //
-                        .filter(TimeoutException.class::isInstance));
+                .bodyToFlux(String.class);
     }
 
     public OpenAITranscriptionResponseDto transcription(final OpenAITranscriptionRequestDto request) {
