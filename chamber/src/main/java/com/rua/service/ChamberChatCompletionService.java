@@ -10,12 +10,10 @@ import com.rua.model.response.ChamberChatCompletionWithStreamResponseDto;
 import com.rua.model.response.OpenAIChatCompletionWithStreamResponseDto;
 import com.rua.util.SharedFormatUtils;
 import feign.FeignException;
-import feign.RetryableException;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
@@ -24,7 +22,7 @@ import java.util.List;
 import static com.rua.constant.ChamberConstants.*;
 import static com.rua.constant.OpenAIConstants.*;
 import static com.rua.util.SharedDataUtils.isNullOrEmpty;
-import static com.rua.util.SharedDataUtils.parseJsonToObject;
+import static com.rua.util.SharedJsonUtils.parseJsonToObject;
 
 @RequiredArgsConstructor
 @Service
@@ -42,8 +40,8 @@ public class ChamberChatCompletionService {
         final var userChatCompletion = chamberChatCompletionLogic.findUserChatCompletionByUsername(username);
         final var userCompletion = chamberCompletionLogic.findUserCompletionByUsername(username);
         // TODO: use authorization
-        final var allowedUserName = List.of("liuwentao@qiankuniot.com");
-        final var model = allowedUserName.contains(username) ?
+        final var allowedUsername = List.of("liuwentao@qiankuniot.com");
+        final var model = allowedUsername.contains(username) ?
                 "gpt-4" :
                 userCompletion.getModel();
         final var userMessage = userCompletion.getMessage();
@@ -77,23 +75,15 @@ public class ChamberChatCompletionService {
                 true);
         final List<String> collectedMessages = new ArrayList<>();
         final var startTimeMillis = System.currentTimeMillis();
-        try {
-            return openAIClientService.chatCompletionWithStream(openAIChatCompletionRequest) //
-                    .map(openAIResponse -> extractAndCollectResponseMessage(collectedMessages, openAIResponse)) //
-                    .filter(response -> response.content() != null)  //
-                    .doOnComplete(() -> processChatCompletionResponse(startTimeMillis, messages,
-                            String.join("", collectedMessages), userChatCompletion, chatCompletionRequest));
-        } catch (WebClientResponseException.BadRequest e) {
-            return Flux.just(ChamberChatCompletionWithStreamResponseDto.builder() //
-                    .content(CHAT_COMPLETION_BAD_REQUEST) //
-                    .hasEnd(true) //
-                    .build());
-        }
+        return openAIClientService.chatCompletionWithStream(openAIChatCompletionRequest) //
+                .map(openAIResponse -> extractAndCollectResponseMessage(collectedMessages, openAIResponse)) //
+                .filter(response -> response.content() != null)  //
+                .doOnComplete(() -> processChatCompletionResponse(startTimeMillis, messages,
+                        String.join("", collectedMessages), userChatCompletion, chatCompletionRequest));
     }
 
     public String chatCompletionWithoutStream(final ChamberChatCompletionWithoutStreamRequestBo request) {
         final var username = request.username();
-        final var model = request.model();
         final var userChatCompletion = chamberChatCompletionLogic.findUserChatCompletionByUsername(username);
         final var messages = chamberChatCompletionLogic.retrieveHistoryMessages(userChatCompletion);
         // Add user message for this time prompt
@@ -101,18 +91,8 @@ public class ChamberChatCompletionService {
         try {
             return sendChatCompletionRequestWithoutStream(userChatCompletion, request, messages);
         } catch (FeignException.BadRequest e) {
-            final var errorLog = e.toString();
-            log.error(
-                    LOG_PREFIX_TIME_CHAMBER + "Unable to create chat completion between {} and {} due to bad request: {}",
-                    username, model, errorLog);
             resetChatHistory(username);
-            return CHAT_COMPLETION_BAD_REQUEST;
-        } catch (RetryableException e) {
-            final var errorLog = e.toString();
-            log.error(
-                    LOG_PREFIX_TIME_CHAMBER + "Unable to create chat completion between {} and {} due to feign retryable error: {}",
-                    username, model, errorLog);
-            return CHAT_COMPLETION_READ_TIME_OUT;
+            throw e;
         }
     }
 

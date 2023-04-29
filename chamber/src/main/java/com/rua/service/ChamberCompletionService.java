@@ -11,14 +11,12 @@ import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Flux;
 
-import static com.rua.constant.ChamberConstants.COMPLETION_BAD_REQUEST;
 import static com.rua.constant.ChamberConstants.LOG_PREFIX_TIME_CHAMBER;
 import static com.rua.constant.OpenAIConstants.END_OF_STREAM;
 import static com.rua.util.SharedDataUtils.isNullOrEmpty;
-import static com.rua.util.SharedDataUtils.parseJsonToObject;
+import static com.rua.util.SharedJsonUtils.parseJsonToObject;
 
 @RequiredArgsConstructor
 @Service
@@ -61,17 +59,10 @@ public class ChamberCompletionService {
                 .temperature(userCompletion.getTemperature()) //
                 .build();
         final var startTimeMillis = System.currentTimeMillis();
-        try {
-            return openAIClientService.completionWithStream(openAICompletionRequest) //
-                    .map(this::extractAndCollectResponseMessage) //
-                    .filter(response -> response.content() != null) //
-                    .doOnComplete(() -> generateLog(startTimeMillis, username, model));
-        } catch (WebClientResponseException.BadRequest e) {
-            return Flux.just(ChamberCompletionWithStreamResponseDto.builder() //
-                    .content(COMPLETION_BAD_REQUEST) //
-                    .hasEnd(true) //
-                    .build());
-        }
+        return openAIClientService.completionWithStream(openAICompletionRequest) //
+                .map(this::extractAndCollectResponseMessage) //
+                .filter(response -> response.content() != null) //
+                .doOnComplete(() -> generateLog(startTimeMillis, username, model));
     }
 
     public String updateUserCompletion(final ChamberUpdateCompletionRequestBo request) {

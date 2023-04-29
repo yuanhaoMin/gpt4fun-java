@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.rua.util.SharedDataUtils.convertObjectToJson;
-import static com.rua.util.SharedDataUtils.parseJsonToList;
 import static com.rua.util.SharedFormatUtils.getCurrentTimeInParis;
+import static com.rua.util.SharedJsonUtils.convertObjectToJson;
+import static com.rua.util.SharedJsonUtils.parseJsonToList;
 
 @Component
 @RequiredArgsConstructor
