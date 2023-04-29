@@ -23,6 +23,7 @@ spring:
     url: jdbc:sqlserver://;serverName=gpt4fun.database.windows.net;databaseName=gpt4fun
     password: Myh.1059331302
   jpa:
+    open-in-view: false # Disable as OSIV can cause performance issues in production
     properties:
       hibernate:
         dialect: org.hibernate.dialect.SQLServerDialect

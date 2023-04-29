@@ -33,6 +33,7 @@ public class ChamberChatCompletionService {
 
     private final ChamberCompletionLogic chamberCompletionLogic;
 
+    // TODO: Investigate open-in-view and add transactional to necessary methods
     public Flux<ChamberChatCompletionWithStreamResponseDto> chatCompletionWithStream(final String username) {
         final var userChatCompletion = chamberChatCompletionLogic.findUserChatCompletionByUsername(username);
         final var userCompletion = chamberCompletionLogic.findUserCompletionByUsername(username);

@@ -10,10 +10,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChamberController {
 
     // This is used for Azure health check when "Always On" is enabled
-    // Unfortunately we can not customize the endpoint in azure
     @GetMapping(path = "/")
     public ResponseEntity<String> healthCheck() {
         return ResponseEntity.ok("Server is up!");
+    }
+
+    @GetMapping("/favicon.ico")
+    public void disableFavicon() {
+        //Method is void to avoid browser 404 issue by returning nothing in the response.
     }
 
 }
