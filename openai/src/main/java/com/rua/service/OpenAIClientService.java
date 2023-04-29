@@ -13,6 +13,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
+import reactor.util.retry.Retry;
+
+import java.time.Duration;
 
 import static com.rua.constant.OpenAIConstants.*;
 
@@ -35,11 +38,14 @@ public class OpenAIClientService {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE) //
                 .body(BodyInserters.fromValue(request)) //
                 .retrieve() //
-                .bodyToFlux(String.class);
+                .bodyToFlux(String.class)
+                // It will throw RetryExhaustedException if max attempts is reached
+                .retryWhen(Retry.backoff(3, Duration.ofMillis(800)))
+                // There is no point to throw RetryExhaustedException, so we map it to its cause
+                .onErrorMap(Throwable::getCause);
     }
 
-    public OpenAIChatCompletionWithoutStreamResponseDto chatCompletionWithoutStream(
-            final OpenAIChatCompletionRequestDto request) {
+    public OpenAIChatCompletionWithoutStreamResponseDto chatCompletionWithoutStream(final OpenAIChatCompletionRequestDto request) {
         if (request.useStream()) {
             throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = false");
         }
@@ -55,7 +61,11 @@ public class OpenAIClientService {
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE) //
                 .body(BodyInserters.fromValue(request)) //
                 .retrieve() //
-                .bodyToFlux(String.class);
+                .bodyToFlux(String.class)
+                // It will throw RetryExhaustedException if max attempts is reached
+                .retryWhen(Retry.backoff(3, Duration.ofMillis(800)))
+                // There is no point to throw RetryExhaustedException, so we map it to its cause
+                .onErrorMap(Throwable::getCause);
     }
 
     public OpenAITranscriptionResponseDto transcription(final OpenAITranscriptionRequestDto request) {

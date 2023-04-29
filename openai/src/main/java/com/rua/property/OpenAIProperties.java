@@ -7,6 +7,6 @@ public record OpenAIProperties(String apiKey, //
                                int maxTokensCompletion, //
                                int connectTimeoutMillis, //
                                int responseTimeoutMillis, //
-                               int writeTimeout, //
-                               int readTimeout) {
+                               int writeTimeoutMillis, //
+                               int readTimeoutMillis) {
 }

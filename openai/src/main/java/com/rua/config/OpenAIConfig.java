@@ -46,8 +46,8 @@ public class OpenAIConfig {
 
     @Bean
     public Request.Options feignOptions() {
-        return new Request.Options(openAIProperties.connectTimeoutMillis(), TimeUnit.MILLISECONDS,
-                openAIProperties.responseTimeoutMillis(), TimeUnit.MILLISECONDS, true);
+        return new Request.Options(openAIProperties.connectTimeoutMillis(), TimeUnit.MILLISECONDS, openAIProperties.responseTimeoutMillis(),
+                TimeUnit.MILLISECONDS, true);
     }
 
     @Bean
@@ -73,9 +73,9 @@ public class OpenAIConfig {
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, openAIProperties.connectTimeoutMillis()) //
                 .doOnConnected(conn -> conn
                         // Max time for a client to send a request after establishing a connection.
-                        .addHandlerLast(new WriteTimeoutHandler(openAIProperties.writeTimeout())) //
+                        .addHandlerLast(new WriteTimeoutHandler(openAIProperties.writeTimeoutMillis(), TimeUnit.MILLISECONDS)) //
                         // Max time for a client to wait for a single response (In SSE) after sending a request.
-                        .addHandlerLast(new ReadTimeoutHandler(openAIProperties.readTimeout())));
+                        .addHandlerLast(new ReadTimeoutHandler(openAIProperties.readTimeoutMillis(), TimeUnit.MILLISECONDS)));
     }
 
 }

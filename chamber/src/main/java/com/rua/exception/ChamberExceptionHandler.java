@@ -10,6 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.HashMap;
@@ -55,11 +56,15 @@ public class ChamberExceptionHandler {
         return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
     }
 
-    // For (chat) completion with stream, Webclient ReadTimeoutHandler will throw this exception on timeout
-    @ExceptionHandler(ReadTimeoutException.class)
-    public ResponseEntity<String> handleWebClientReadTimeoutException(ReadTimeoutException e) {
-        final var errorMessage = ERROR_STREAM_READ_TIMEOUT + e.getMessage();
-        return new ResponseEntity<>(errorMessage, HttpStatus.GATEWAY_TIMEOUT);
+    // Webclient wraps ReadTimeoutException in WebClientRequestException
+    @ExceptionHandler(WebClientRequestException.class)
+    public ResponseEntity<String> handleWebClientRequestException(WebClientRequestException e) {
+        if (e.getCause() instanceof ReadTimeoutException readTimeoutException) {
+            final var errorMessage = ERROR_STREAM_READ_TIMEOUT + readTimeoutException.getMessage();
+            return new ResponseEntity<>(errorMessage, HttpStatus.GATEWAY_TIMEOUT);
+        } else {
+            return handleException(e);
+        }
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
