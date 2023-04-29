@@ -6,7 +6,7 @@ logging:
     reactor:
       netty:
         http:
-          client: DEBUG # Debug WebClient
+          client: INFO # Debug WebClient
   org:
     springframework:
       web: DEBUG # Displays error logs of, for example, bad request

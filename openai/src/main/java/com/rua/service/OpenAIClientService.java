@@ -32,7 +32,6 @@ public class OpenAIClientService {
         if (!request.useStream()) {
             throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = true");
         }
-        // TODO: Override to increase readTime if model is GPT-4
         return webClient.post() //
                 .uri(OPENAI_API_CHAT_COMPLETION_URL) //
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE) //

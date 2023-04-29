@@ -78,6 +78,12 @@ public class ChamberExceptionHandler {
         return new ResponseEntity<>(invalidFields, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        final var errorMessage = ERROR_ILLEGAL_ARGUMENT + e.getMessage();
+        return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+    }
+
     // All Other exceptions will be handled by this method
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException(Exception e) {

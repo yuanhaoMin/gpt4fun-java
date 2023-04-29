@@ -25,6 +25,12 @@ public class ChamberChatCompletionController {
 
     private final ChamberChatCompletionService chamberChatCompletionService;
 
+    @GetMapping(path = CHAMBER_CHAT_COMPLETION_CHAT_COMPLETION_WITH_STREAM_PATH, produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ChamberChatCompletionWithStreamResponseDto> chatCompletionWithStream(
+            @RequestParam(name = "username") final String username) {
+        return chamberChatCompletionService.chatCompletionWithStream(username);
+    }
+
     @PostMapping(value = CHAMBER_CHAT_COMPLETION_CHAT_COMPLETION_WITHOUT_STREAM_PATH, produces = MediaType.APPLICATION_JSON_VALUE)
     public ChamberChatCompletionWithoutStreamResponseDto chatCompletionWithoutStream(
             final Authentication authentication,
@@ -39,12 +45,6 @@ public class ChamberChatCompletionController {
         return ChamberChatCompletionWithoutStreamResponseDto.builder() //
                 .responseMessage(responseMessage) //
                 .build();
-    }
-
-    @GetMapping(path = CHAMBER_CHAT_COMPLETION_CHAT_COMPLETION_WITH_STREAM_PATH, produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ChamberChatCompletionWithStreamResponseDto> chatCompletionWithStream(
-            @RequestParam(name = "username") final String username) {
-        return chamberChatCompletionService.chatCompletionWithStream(username);
     }
 
     @DeleteMapping(value = CHAMBER_CHAT_COMPLETION_RESET_CHAT_HISTORY_PATH, produces = MediaType.APPLICATION_JSON_VALUE)

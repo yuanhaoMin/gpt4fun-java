@@ -10,8 +10,6 @@ import static com.rua.constant.OpenAIConstants.*;
 
 @Component
 public class OpenAIChatCompletionLogic {
-
-    // TODO: Unit Test, think a better solution
     public long limitPromptTokensByPurgingHistoryMessages(long currentPromptTokens, long maxPromptTokens,
                                                           @Nonnull final List<OpenAIChatCompletionMessage> historyMessages) {
         final var totalHistoryMessageLength = sumHistoryMessagesLengths(historyMessages);

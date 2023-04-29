@@ -44,11 +44,10 @@ public class DiscordMessageCreateHandler implements DiscordEventHandler<MessageC
      */
     @Override
     public Mono<Void> execute(final MessageCreateEvent event) {
-        final var startTimeMillis = System.currentTimeMillis();
+        final var startTimestamp = System.currentTimeMillis();
         final var message = event.getMessage();
         final boolean isNotBot = message.getAuthor().map(user -> !user.isBot()).orElse(false);
-        final boolean isMentioned = message.getUserMentionIds()
-                .contains(Snowflake.of(discordProperties.applicationId()));
+        final boolean isMentioned = message.getUserMentionIds().contains(Snowflake.of(discordProperties.applicationId()));
         if (isNotBot && isMentioned) {
             final var guildId = message.getGuildId().map(Snowflake::asString).orElse("");
             final var userMessage = getMessageContentWithoutMention(message.getContent());
@@ -61,12 +60,10 @@ public class DiscordMessageCreateHandler implements DiscordEventHandler<MessageC
                     .build();
             try {
                 final var botResponse = discordChatService.gpt35ChatCompletion(request);
-                final var endTimeMillis = System.currentTimeMillis();
+                final var endTimestamp = System.currentTimeMillis();
                 final var executionTimeSeconds = SharedFormatUtils.convertMillisToStringWithMaxTwoFractionDigits(
-                        endTimeMillis - startTimeMillis);
-                log.info(LOG_PREFIX_DISCORD + "GPT3.5 chat completion created in {}s in guild: {}",
-                        executionTimeSeconds,
-                        guildId);
+                        endTimestamp - startTimestamp);
+                log.info(LOG_PREFIX_DISCORD + "GPT3.5 chat completion created in {}s in guild: {}", executionTimeSeconds, guildId);
                 return sendMessageToChannel(message, botResponse);
             } catch (FeignException.BadRequest e) {
                 final var errorLog = e.toString();
@@ -75,8 +72,7 @@ public class DiscordMessageCreateHandler implements DiscordEventHandler<MessageC
                 return sendMessageToChannel(message, GPT_35_CHAT_BAD_REQUEST);
             } catch (RetryableException e) {
                 final var errorLog = e.toString();
-                log.error(LOG_PREFIX_DISCORD + "Unable to complete GPT3.5 chat due to feign retryable error: {}",
-                        errorLog);
+                log.error(LOG_PREFIX_DISCORD + "Unable to complete GPT3.5 chat due to feign retryable error: {}", errorLog);
                 return sendMessageToChannel(message, GPT_35_CHAT_READ_TIME_OUT);
             } catch (Exception e) {
                 final var errorLog = e.toString();
