@@ -32,22 +32,15 @@ public class ChamberWebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
         http //
                 .httpBasic() //
                 .and() //
                 .authorizeHttpRequests(request -> request //
-                        .requestMatchers( //
-                                // Permit requests to root path. For example, the every 5 minute health check in Azure
-                                "/",
-                                // Permit all user related requests
-                                CHAMBER_USER_CONTROLLER_PATH + "/**",
-                                // Permit chat completion with stream requests since SSE does not support auth
-                                CHAMBER_CHAT_COMPLETION_CONTROLLER_PATH + CHAMBER_CHAT_COMPLETION_CHAT_COMPLETION_WITH_STREAM_PATH,
-                                // Permit completion with stream requests since SSE does not support auth
-                                CHAMBER_COMPLETION_CONTROLLER_PATH + CHAMBER_COMPLETION_COMPLETION_WITH_STREAM_PATH) //
-                        .permitAll() // Permit all user related requests
-                        .anyRequest().authenticated()) // Other requests must be authenticated
+                        .requestMatchers(getPermitAllPaths()) //
+                        .permitAll() //
+                        .anyRequest() //
+                        .authenticated()) // Other requests must be authenticated
                 .cors() // Cors must be enabled with custom CorsConfigurationSource to allow all origins
                 .and() //
                 .csrf().disable() //
@@ -57,12 +50,12 @@ public class ChamberWebSecurityConfig {
     }
 
     @Bean
-    PasswordEncoder passwordEncoder() {
+    public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
+    public CorsConfigurationSource corsConfigurationSource() {
         final var source = new UrlBasedCorsConfigurationSource();
         final var configuration = new CorsConfiguration();
         // This is needed when client is using basic auth
@@ -72,6 +65,18 @@ public class ChamberWebSecurityConfig {
         // Allow any mapping
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private String[] getPermitAllPaths() {
+        return new String[]{
+                // Permit requests to root path. For example, the every 5 minute health check in Azure
+                "/",
+                // Permit all user related requests
+                CHAMBER_USER_CONTROLLER_PATH + "/**",
+                // Permit chat completion with stream requests since SSE does not support auth
+                CHAMBER_CHAT_COMPLETION_CONTROLLER_PATH + CHAMBER_CHAT_COMPLETION_CHAT_COMPLETION_WITH_STREAM_PATH,
+                // Permit completion with stream requests since SSE does not support auth
+                CHAMBER_COMPLETION_CONTROLLER_PATH + CHAMBER_COMPLETION_COMPLETION_WITH_STREAM_PATH};
     }
 
 }

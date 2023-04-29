@@ -6,4 +6,6 @@ dependencies {
     implementation project(":openai")
     implementation project(":persistence")
     implementation project(":shared")
+
+    testImplementation "org.springframework.boot:spring-boot-starter-test:${springBootVersion}"
 }

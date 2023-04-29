@@ -13,6 +13,7 @@ public class ChamberConstants {
     public static final String SYSTEM_NOTIFICATION = "系统通知: ";
     public static final String RESET_CHAT_HISTORY_SUCCESS = SYSTEM_NOTIFICATION + "已重置聊天";
     public static final String SET_SYSTEM_MESSAGE_SUCCESS = SYSTEM_NOTIFICATION + "成功设置对话情景如下\n%s";
+
     // Error message prefix
     public static final String ERROR_AUTHENTICATION_FAILED = LOG_PREFIX_TIME_CHAMBER + "用户名或密码错误\n";
     public static final String ERROR_CONFLICT_USERNAME = LOG_PREFIX_TIME_CHAMBER + "用户名已存在\n";
