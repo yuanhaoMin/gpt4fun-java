@@ -12,6 +12,7 @@ IF OBJECT_ID('dbo.chamber_user') IS NULL
         id INT IDENTITY(1,1) PRIMARY KEY,
         user_name VARCHAR(255) UNIQUE,
         password VARCHAR(255),
+        access_bitmap INT NOT NULL,
         created_time DATETIME,
         last_login_time DATETIME,
     );

@@ -1,5 +1,7 @@
 package com.rua.service;
 
+import com.rua.constant.ChamberUserAccessLevelEnum;
+import com.rua.constant.OpenAIGeneralCompletionModelEnum;
 import com.rua.logic.ChamberChatCompletionLogic;
 import com.rua.logic.ChamberCompletionLogic;
 import com.rua.model.request.ChamberChatCompletionWithoutStreamRequestBo;
@@ -37,10 +39,9 @@ public class ChamberChatCompletionService {
     public Flux<ChamberChatCompletionWithStreamResponseDto> chatCompletionWithStream(final String username) {
         final var userChatCompletion = chamberChatCompletionLogic.findUserChatCompletionByUsername(username);
         final var userCompletion = chamberCompletionLogic.findUserCompletionByUsername(username);
-        // TODO: use authorization
-        final var allowedUsername = List.of("liuwentao@qiankuniot.com");
-        final var model = allowedUsername.contains(username) ?
-                "gpt-4" :
+        final var accessBitmap = userChatCompletion.getUser().getAccessBitmap();
+        final var model = ChamberUserAccessLevelEnum.GPT4.hasAccess(accessBitmap) ?
+                OpenAIGeneralCompletionModelEnum.GPT4.getModelName() :
                 userCompletion.getModel();
         chamberCompletionLogic.validateUserCompletion(username, userCompletion, true);
         final var messages = chamberChatCompletionLogic.retrieveHistoryMessages(userChatCompletion);
@@ -53,7 +54,7 @@ public class ChamberChatCompletionService {
                 .map(openAIResponse -> extractAndCollectResponseMessage(collectedMessages, openAIResponse)) //
                 .filter(response -> response.content() != null)  //
                 .doOnComplete(() -> {
-                    final var logMessage = createLogMessage("completionWithStream", startTimestamp, username, userCompletion.getModel());
+                    final var logMessage = createLogMessage("completionWithStream", startTimestamp, username, model);
                     log.info(LOG_PREFIX_TIME_CHAMBER + logMessage);
                     // Add gpt response for next time prompt
                     messages.add(new OpenAIChatCompletionMessage(CHAT_COMPLETION_ROLE_ASSISTANT, String.join("", collectedMessages)));

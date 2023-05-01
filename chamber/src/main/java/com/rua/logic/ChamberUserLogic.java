@@ -1,6 +1,7 @@
 package com.rua.logic;
 
 import com.rua.ChamberUserPrincipal;
+import com.rua.constant.ChamberUserAccessLevelEnum;
 import com.rua.entity.ChamberUser;
 import com.rua.entity.ChamberUserChatCompletion;
 import com.rua.entity.ChamberUserCompletion;
@@ -39,6 +40,7 @@ public class ChamberUserLogic {
                 .createdTime(getCurrentTimeInParis()) //
                 .username(username) //
                 .password(password) //
+                .accessBitmap(ChamberUserAccessLevelEnum.NORMAL.getAccessLevel()) //
                 .build();
         final var chamberUserChatCompletion = new ChamberUserChatCompletion();
         chamberUserChatCompletion.setUser(userToSave);

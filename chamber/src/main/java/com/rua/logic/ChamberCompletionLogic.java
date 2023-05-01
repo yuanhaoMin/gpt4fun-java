@@ -1,6 +1,6 @@
 package com.rua.logic;
 
-import com.rua.constant.OpenAIGeneralCompletionModelEnums;
+import com.rua.constant.OpenAIGeneralCompletionModelEnum;
 import com.rua.entity.ChamberUserCompletion;
 import com.rua.model.request.ChamberUpdateCompletionRequestBo;
 import com.rua.repository.ChamberUserCompletionRepository;
@@ -50,7 +50,7 @@ public class ChamberCompletionLogic {
             throw new IllegalArgumentException(String.format("Empty model, user: %s", username));
         }
         try {
-            final var modelEnum = OpenAIGeneralCompletionModelEnums.get(modelName);
+            final var modelEnum = OpenAIGeneralCompletionModelEnum.get(modelName);
             if (isChatCompletion != modelEnum.isChatCompletionModel()) {
                 throw new IllegalArgumentException();
             }
