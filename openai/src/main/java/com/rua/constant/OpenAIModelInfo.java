@@ -6,7 +6,7 @@ public interface OpenAIModelInfo {
 
     String getModelName();
 
-    static <T extends Enum<T> & OpenAIModelInfo> T get(String modelName, Class<T> enumClass) {
+    static <T extends Enum<T> & OpenAIModelInfo> T get(String modelName, Class<T> enumClass) throws IllegalArgumentException {
         return Arrays.stream(enumClass.getEnumConstants())
                 .filter(model -> model.getModelName().equals(modelName))
                 .findFirst()

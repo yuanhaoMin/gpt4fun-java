@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import static com.rua.constant.ChamberConstants.LOG_PREFIX_TIME_CHAMBER;
+import static com.rua.constant.ChamberConstants.LOG_PREFIX_CHAMBER;
 
 @RequiredArgsConstructor
 @Service
@@ -17,13 +17,13 @@ public class ChamberUserService {
 
     public ChamberUserPrincipal login(String username, String password) {
         final var authenticatedUser = chamberUserLogic.authenticateUser(username, password);
-        log.info(LOG_PREFIX_TIME_CHAMBER + "{} logged in", username);
+        log.info(LOG_PREFIX_CHAMBER + "{} logged in", username);
         return authenticatedUser;
     }
 
     public void register(String username, String password) {
         chamberUserLogic.createUser(username, password);
-        log.info(LOG_PREFIX_TIME_CHAMBER + "{} registered", username);
+        log.info(LOG_PREFIX_CHAMBER + "{} registered", username);
     }
 
 }

@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
-import static com.rua.constant.ChamberConstants.LOG_PREFIX_TIME_CHAMBER;
+import static com.rua.constant.ChamberConstants.LOG_PREFIX_CHAMBER;
 import static com.rua.constant.OpenAIConstants.END_OF_STREAM;
 import static com.rua.util.SharedFormatUtils.createLogMessage;
 import static com.rua.util.SharedJsonUtils.parseJsonToObject;
@@ -39,7 +39,7 @@ public class ChamberCompletionService {
                 .filter(response -> response.content() != null) //
                 .doOnComplete(() -> {
                     final var logMessage = createLogMessage("completionWithStream", startTimestamp, username, userCompletion.getModel());
-                    log.info(LOG_PREFIX_TIME_CHAMBER + logMessage);
+                    log.info(LOG_PREFIX_CHAMBER + logMessage);
                 });
     }
 

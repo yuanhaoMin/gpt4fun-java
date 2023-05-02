@@ -55,7 +55,7 @@ public class ChamberChatCompletionService {
                 .filter(response -> response.content() != null)  //
                 .doOnComplete(() -> {
                     final var logMessage = createLogMessage("completionWithStream", startTimestamp, username, model);
-                    log.info(LOG_PREFIX_TIME_CHAMBER + logMessage);
+                    log.info(LOG_PREFIX_CHAMBER + logMessage);
                     // Add gpt response for next time prompt
                     messages.add(new OpenAIChatCompletionMessage(CHAT_COMPLETION_ROLE_ASSISTANT, String.join("", collectedMessages)));
                     chamberChatCompletionLogic.updateChamberUserChatCompletion(userChatCompletion, messages, username);
@@ -80,7 +80,7 @@ public class ChamberChatCompletionService {
             throw e;
         }
         final var logMessage = createLogMessage("completionWithStream", startTimestamp, username, request.model().getModelName());
-        log.info(LOG_PREFIX_TIME_CHAMBER + logMessage);
+        log.info(LOG_PREFIX_CHAMBER + logMessage);
         // Add gpt response for next time prompt
         messages.add(new OpenAIChatCompletionMessage(CHAT_COMPLETION_ROLE_ASSISTANT, responseContent));
         chamberChatCompletionLogic.updateChamberUserChatCompletion(userChatCompletion, messages, username);
@@ -89,13 +89,13 @@ public class ChamberChatCompletionService {
 
     public String resetChatHistory(final String username) {
         chamberChatCompletionLogic.resetChatHistory(username);
-        log.info(LOG_PREFIX_TIME_CHAMBER + "Reset chat history for {}", username);
+        log.info(LOG_PREFIX_CHAMBER + "Reset chat history for {}", username);
         return RESET_CHAT_HISTORY_SUCCESS;
     }
 
     public String updateSystemMessage(final String username, final String systemMessageContent) {
         chamberChatCompletionLogic.updateSystemMessageAndPersist(username, systemMessageContent);
-        log.info(LOG_PREFIX_TIME_CHAMBER + "Updated system message for {}", username);
+        log.info(LOG_PREFIX_CHAMBER + "Updated system message for {}", username);
         return String.format(SET_SYSTEM_MESSAGE_SUCCESS, systemMessageContent);
     }
 

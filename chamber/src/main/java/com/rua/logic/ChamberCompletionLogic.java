@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
+import static com.rua.constant.ChamberConstants.*;
 import static com.rua.util.SharedDataUtils.isNullOrEmpty;
 
 @Component
@@ -48,20 +49,19 @@ public class ChamberCompletionLogic {
     public void validateUserCompletion(final String username, final ChamberUserCompletion userCompletion, boolean isChatCompletion) {
         final var modelName = userCompletion.getModel();
         if (isNullOrEmpty(modelName)) {
-            throw new IllegalArgumentException(String.format("Empty model, user: %s", username));
+            throw new IllegalArgumentException(String.format(ERROR_CAUSE_EMPTY_MODEL, username));
         }
         try {
-            final var modelEnum = isChatCompletion ?
-                    OpenAIModelInfo.get(modelName, OpenAIChatCompletionModelEnum.class) :
-                    OpenAIModelInfo.get(modelName, OpenAICompletionModelEnum.class);
-            if (modelEnum == null) {
-                throw new IllegalArgumentException();
+            if (isChatCompletion) {
+                OpenAIModelInfo.get(modelName, OpenAIChatCompletionModelEnum.class);
+            } else {
+                OpenAIModelInfo.get(modelName, OpenAICompletionModelEnum.class);
             }
         } catch (final IllegalArgumentException e) {
-            throw new IllegalArgumentException(String.format("Invalid model: %s, user: %s", modelName, username));
+            throw new IllegalArgumentException(String.format(ERROR_CAUSE_INVALID_MODEL, modelName, username));
         }
         if (isNullOrEmpty(userCompletion.getMessage())) {
-            throw new IllegalArgumentException(String.format("Empty message, user: %s", username));
+            throw new IllegalArgumentException(String.format(ERROR_CAUSE_EMPTY_MESSAGE, username));
         }
     }
 
