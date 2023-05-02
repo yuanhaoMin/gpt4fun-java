@@ -15,6 +15,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 import static com.rua.constant.ChamberConstants.*;
 
@@ -65,6 +66,13 @@ public class ChamberExceptionHandler {
         } else {
             return handleException(e);
         }
+    }
+
+    // Webclient throws TimeoutException on timeout if timeout() is set for a specific request
+    @ExceptionHandler(TimeoutException.class)
+    public ResponseEntity<String> handleTimeoutException(TimeoutException e) {
+        final var errorMessage = ERROR_STREAM_READ_TIMEOUT + e.getMessage();
+        return new ResponseEntity<>(errorMessage, HttpStatus.GATEWAY_TIMEOUT);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
