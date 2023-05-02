@@ -1,7 +1,6 @@
 package com.rua.logic;
 
 import com.rua.entity.ChamberUserChatCompletion;
-import com.rua.model.request.ChamberChatCompletionWithoutStreamRequestBo;
 import com.rua.model.request.OpenAIChatCompletionMessage;
 import com.rua.repository.ChamberUserChatCompletionRepository;
 import com.rua.util.OpenAIChatCompletionLogic;
@@ -12,9 +11,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.rua.util.SharedDataUtils.convertObjectToJson;
-import static com.rua.util.SharedDataUtils.parseJsonToList;
 import static com.rua.util.SharedFormatUtils.getCurrentTimeInParis;
+import static com.rua.util.SharedJsonUtils.convertObjectToJson;
+import static com.rua.util.SharedJsonUtils.parseJsonToList;
 
 @Component
 @RequiredArgsConstructor
@@ -53,15 +52,14 @@ public class ChamberChatCompletionLogic {
 
     public void updateChamberUserChatCompletion(@Nonnull final ChamberUserChatCompletion userChatCompletion,
                                                 final List<OpenAIChatCompletionMessage> historyMessages,
-                                                final ChamberChatCompletionWithoutStreamRequestBo request) {
+                                                final String username) {
         openAIChatCompletionLogic.shiftSystemMessageToHistoryEnd(historyMessages);
         userChatCompletion.setLastChatTime(getCurrentTimeInParis());
         userChatCompletion.setMessages(convertObjectToJson(historyMessages));
         // First time user chat
         if (userChatCompletion.getUser() == null) {
-            userChatCompletion.setUser(chamberUserLogic.findByUsername(request.username()));
+            userChatCompletion.setUser(chamberUserLogic.findByUsername(username));
         }
-        // TODO: count request length, maybe a map of localdatetime and count
         chamberUserChatCompletionRepository.save(userChatCompletion);
     }
 

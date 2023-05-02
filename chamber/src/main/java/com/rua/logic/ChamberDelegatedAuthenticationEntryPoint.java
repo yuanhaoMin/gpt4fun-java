@@ -1,5 +1,6 @@
-package com.rua.exception;
+package com.rua.logic;
 
+import com.rua.exception.ChamberExceptionHandler;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ public class ChamberDelegatedAuthenticationEntryPoint implements AuthenticationE
 
     /**
      * Delegates to {@link HandlerExceptionResolver} to handle {@link AuthenticationException}, in the end the exception
-     * is handled in {@link ChamberExceptionHandler#handleUnauthorizedException(AuthenticationException)}
+     * is handled in {@link ChamberExceptionHandler#handleAuthenticationException(AuthenticationException)}
      */
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,

@@ -1,6 +1,8 @@
 package com.rua.exception;
 
-import io.netty.handler.timeout.TimeoutException;
+import feign.FeignException;
+import feign.RetryableException;
+import io.netty.handler.timeout.ReadTimeoutException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
@@ -8,47 +10,93 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
-import static com.rua.constant.ChamberConstants.CHAT_COMPLETION_READ_TIME_OUT;
-import static com.rua.constant.ChamberConstants.LOG_PREFIX_TIME_CHAMBER;
+import static com.rua.constant.ChamberConstants.*;
 
 @RestControllerAdvice
 public class ChamberExceptionHandler {
 
-    // All uncaught exceptions will be handled by this method
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleException(Exception ex) {
-        // return a response entity with an appropriate status code and error message
-        return new ResponseEntity<>(LOG_PREFIX_TIME_CHAMBER + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @ExceptionHandler(ChamberInvalidUserException.class)
-    public ResponseEntity<String> handleInvalidUserException(ChamberInvalidUserException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(TimeoutException.class)
-    public ResponseEntity<String> handleTimeoutException(TimeoutException ex) {
-        return new ResponseEntity<>(CHAT_COMPLETION_READ_TIME_OUT, HttpStatus.REQUEST_TIMEOUT);
-    }
-
+    // From AuthenticationEntryPoint
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<String> handleUnauthorizedException(AuthenticationException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<String> handleAuthenticationException(AuthenticationException e) {
+        final var errorMessage = ERROR_AUTHENTICATION_FAILED + e.getMessage();
+        return new ResponseEntity<>(errorMessage, HttpStatus.UNAUTHORIZED);
+    }
+
+    // During registration, if username already exists, this exception will be thrown
+    @ExceptionHandler(ChamberConflictUsernameException.class)
+    public ResponseEntity<String> handleConflictUsernameException(ChamberConflictUsernameException e) {
+        final var errorMessage = ERROR_CONFLICT_USERNAME + e.getMessage();
+        return new ResponseEntity<>(errorMessage, HttpStatus.CONFLICT);
+    }
+
+    // For chat completion without stream, Feign throw this exception if messages are too long
+    @ExceptionHandler(FeignException.BadRequest.class)
+    public ResponseEntity<String> handleFeignBadRequestException(FeignException.BadRequest e) {
+        final var errorMessage = ERROR_MESSAGES_TOO_LONG + e.getMessage();
+        return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+    }
+
+    // For chat completion without stream, Feign usually throw this exception on timeout
+    @ExceptionHandler(RetryableException.class)
+    public ResponseEntity<String> handleFeignReadTimeoutException(RetryableException e) {
+        final var errorMessage = ERROR_NO_STREAM_READ_TIMEOUT + e.getMessage();
+        return new ResponseEntity<>(errorMessage, HttpStatus.REQUEST_TIMEOUT);
+    }
+
+    // For (chat) completion with stream, Webclient usually throw this exception if prompt is too long
+    @ExceptionHandler(WebClientResponseException.BadRequest.class)
+    public ResponseEntity<String> handleWebClientBadRequestException(WebClientResponseException.BadRequest e) {
+        final var errorMessage = ERROR_PROMPT_TOO_LONG + e.getMessage();
+        return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+    }
+
+    // Webclient wraps ReadTimeoutException in WebClientRequestException
+    @ExceptionHandler(WebClientRequestException.class)
+    public ResponseEntity<String> handleWebClientRequestException(WebClientRequestException e) {
+        if (e.getCause() instanceof ReadTimeoutException readTimeoutException) {
+            final var errorMessage = ERROR_STREAM_READ_TIMEOUT + readTimeoutException.getMessage();
+            return new ResponseEntity<>(errorMessage, HttpStatus.GATEWAY_TIMEOUT);
+        } else {
+            return handleException(e);
+        }
+    }
+
+    // Webclient throws TimeoutException on timeout if timeout() is set for a specific request
+    @ExceptionHandler(TimeoutException.class)
+    public ResponseEntity<String> handleTimeoutException(TimeoutException e) {
+        final var errorMessage = ERROR_STREAM_READ_TIMEOUT + e.getMessage();
+        return new ResponseEntity<>(errorMessage, HttpStatus.GATEWAY_TIMEOUT);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach(error -> {
+    public ResponseEntity<Map<String, String>> handleValidationException(MethodArgumentNotValidException e) {
+        Map<String, String> invalidFields = new HashMap<>();
+        e.getBindingResult().getAllErrors().forEach(error -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
+            invalidFields.put(fieldName, errorMessage);
         });
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(invalidFields, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException e) {
+        final var errorMessage = ERROR_ILLEGAL_ARGUMENT + e.getMessage();
+        return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+    }
+
+    // All Other exceptions will be handled by this method
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleException(Exception e) {
+        final var errorMessage = ERROR_UNKNOWN_EXCEPTION + e.getMessage();
+        return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 }

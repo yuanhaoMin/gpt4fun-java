@@ -5,6 +5,7 @@ import com.rua.model.response.OpenAITranscriptionResponseDto;
 import com.rua.service.ChamberAudioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,9 +24,9 @@ public class ChamberAudioController {
     @PostMapping(value = CHAMBER_AUDIO_TRANSCRIPTION_PATH, //
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE, //
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public OpenAITranscriptionResponseDto transcription(
-            @ModelAttribute final ChamberTranscriptionRequestDto request) {
-        return chamberAudioService.transcription(request);
+    public OpenAITranscriptionResponseDto transcription(final Authentication authentication, //
+                                                        @ModelAttribute final ChamberTranscriptionRequestDto request) {
+        return chamberAudioService.transcription(request, authentication.getName());
     }
 
 }

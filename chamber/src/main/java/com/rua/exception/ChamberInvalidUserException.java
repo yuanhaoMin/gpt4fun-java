@@ -1,6 +1,8 @@
 package com.rua.exception;
 
-public class ChamberInvalidUserException extends IllegalArgumentException {
+import org.springframework.security.core.AuthenticationException;
+
+public class ChamberInvalidUserException extends AuthenticationException {
 
     public ChamberInvalidUserException(final String message) {
         super(message);

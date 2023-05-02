@@ -30,6 +30,9 @@ public class ChamberUser {
     @Column(name = "password")
     private String password;
 
+    @Column(name = "access_bitmap", nullable = false)
+    private Integer accessBitmap;
+
     @Column(name = "created_time")
     private LocalDateTime createdTime;
 
