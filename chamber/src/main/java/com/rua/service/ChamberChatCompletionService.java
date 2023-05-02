@@ -1,7 +1,7 @@
 package com.rua.service;
 
 import com.rua.constant.ChamberUserAccessLevelEnum;
-import com.rua.constant.OpenAIGeneralCompletionModelEnum;
+import com.rua.constant.OpenAIChatCompletionModelEnum;
 import com.rua.logic.ChamberChatCompletionLogic;
 import com.rua.logic.ChamberCompletionLogic;
 import com.rua.model.request.ChamberChatCompletionWithoutStreamRequestBo;
@@ -41,7 +41,7 @@ public class ChamberChatCompletionService {
         final var userCompletion = chamberCompletionLogic.findUserCompletionByUsername(username);
         final var accessBitmap = userChatCompletion.getUser().getAccessBitmap();
         final var model = ChamberUserAccessLevelEnum.GPT4.hasAccess(accessBitmap) ?
-                OpenAIGeneralCompletionModelEnum.GPT4.getModelName() :
+                OpenAIChatCompletionModelEnum.GPT4.getModelName() :
                 userCompletion.getModel();
         chamberCompletionLogic.validateUserCompletion(username, userCompletion, true);
         final var messages = chamberChatCompletionLogic.retrieveHistoryMessages(userChatCompletion);
@@ -68,7 +68,8 @@ public class ChamberChatCompletionService {
         final var messages = chamberChatCompletionLogic.retrieveHistoryMessages(userChatCompletion);
         // Add user message for this time prompt
         messages.add(new OpenAIChatCompletionMessage(CHAT_COMPLETION_ROLE_USER, request.userMessage()));
-        final var openAIChatCompletionRequest = createOpenAIChatCompletionRequest(request.model(), messages, request.temperature(), false);
+        final var openAIChatCompletionRequest = createOpenAIChatCompletionRequest(request.model().getModelName(), messages,
+                request.temperature(), false);
         var responseContent = "";
         final var startTimestamp = System.currentTimeMillis();
         try {
@@ -78,7 +79,7 @@ public class ChamberChatCompletionService {
             resetChatHistory(username);
             throw e;
         }
-        final var logMessage = createLogMessage("completionWithStream", startTimestamp, username, request.model());
+        final var logMessage = createLogMessage("completionWithStream", startTimestamp, username, request.model().getModelName());
         log.info(LOG_PREFIX_TIME_CHAMBER + logMessage);
         // Add gpt response for next time prompt
         messages.add(new OpenAIChatCompletionMessage(CHAT_COMPLETION_ROLE_ASSISTANT, responseContent));

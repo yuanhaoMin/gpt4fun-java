@@ -1,5 +1,6 @@
 package com.rua.service;
 
+import com.rua.constant.OpenAIChatCompletionModelEnum;
 import com.rua.logic.DiscordChatLogic;
 import com.rua.model.request.DiscordChatCompletionRequestBo;
 import com.rua.model.request.OpenAIChatCompletionMessage;
@@ -14,7 +15,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 import static com.rua.constant.DiscordConstants.*;
-import static com.rua.constant.OpenAIConstants.*;
+import static com.rua.constant.OpenAIConstants.CHAT_COMPLETION_ROLE_ASSISTANT;
+import static com.rua.constant.OpenAIConstants.CHAT_COMPLETION_ROLE_USER;
 
 @RequiredArgsConstructor
 @Service
@@ -34,7 +36,7 @@ public class DiscordChatService {
         // Add user message for this time prompt
         messages.add(new OpenAIChatCompletionMessage(CHAT_COMPLETION_ROLE_USER, request.userMessage()));
         final var openAIGPT35ChatRequest = OpenAIChatCompletionRequestDto.builder() //
-                .model(OPENAI_MODEL_GPT_35_TURBO) //
+                .model(OpenAIChatCompletionModelEnum.GPT35.getModelName()) //
                 .messages(messages) //
                 .useStream(false) //
                 .temperature(0.4) //

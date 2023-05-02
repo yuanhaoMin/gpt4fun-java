@@ -68,9 +68,9 @@ public class OpenAIClientService {
     }
 
     public OpenAITranscriptionResponseDto transcription(final OpenAITranscriptionRequestDto request) {
-        final var model = request.model();
+        final var modelName = request.model();
         final var audioFile = request.file();
-        return openAIFeignClient.transcription(model, audioFile);
+        return openAIFeignClient.transcription(modelName, audioFile);
     }
 
 }

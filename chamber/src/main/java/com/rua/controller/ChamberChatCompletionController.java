@@ -1,5 +1,6 @@
 package com.rua.controller;
 
+import com.rua.constant.OpenAIChatCompletionModelEnum;
 import com.rua.model.request.ChamberChatCompletionWithoutStreamRequestBo;
 import com.rua.model.request.ChamberChatCompletionWithoutStreamRequestDto;
 import com.rua.model.request.ChamberUpdateSystemMessageRequestDto;
@@ -16,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
 import static com.rua.constant.ChamberPathConstants.*;
-import static com.rua.constant.OpenAIConstants.OPENAI_MODEL_GPT_35_TURBO;
 
 @RequestMapping(value = CHAMBER_CHAT_COMPLETION_CONTROLLER_PATH)
 @RequiredArgsConstructor
@@ -36,7 +36,7 @@ public class ChamberChatCompletionController {
             final Authentication authentication,
             @Valid @RequestBody final ChamberChatCompletionWithoutStreamRequestDto requestDto) {
         final var requestBo = ChamberChatCompletionWithoutStreamRequestBo.builder() //
-                .model(OPENAI_MODEL_GPT_35_TURBO) //
+                .model(OpenAIChatCompletionModelEnum.GPT35) //
                 .temperature(requestDto.temperature()) //
                 .userMessage(requestDto.userMessage()) //
                 .username(authentication.getName()) //

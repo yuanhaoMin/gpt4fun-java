@@ -1,6 +1,8 @@
 package com.rua.logic;
 
-import com.rua.constant.OpenAIGeneralCompletionModelEnum;
+import com.rua.constant.OpenAIChatCompletionModelEnum;
+import com.rua.constant.OpenAICompletionModelEnum;
+import com.rua.constant.OpenAIModelInfo;
 import com.rua.entity.ChamberUserCompletion;
 import com.rua.model.request.ChamberUpdateCompletionRequestBo;
 import com.rua.repository.ChamberUserCompletionRepository;
@@ -21,8 +23,7 @@ public class ChamberCompletionLogic {
 
     private final ChamberUserCompletionRepository chamberUserCompletionRepository;
 
-    public void updateUserCompletionByUsername(final ChamberUpdateCompletionRequestBo request)
-            throws UsernameNotFoundException {
+    public void updateUserCompletionByUsername(final ChamberUpdateCompletionRequestBo request) throws UsernameNotFoundException {
         final var user = chamberUserLogic.findByUsername(request.username());
         var userCompletion = chamberUserCompletionRepository.findByUserId(user.getId());
         if (userCompletion == null) {
@@ -50,8 +51,10 @@ public class ChamberCompletionLogic {
             throw new IllegalArgumentException(String.format("Empty model, user: %s", username));
         }
         try {
-            final var modelEnum = OpenAIGeneralCompletionModelEnum.get(modelName);
-            if (isChatCompletion != modelEnum.isChatCompletionModel()) {
+            final var modelEnum = isChatCompletion ?
+                    OpenAIModelInfo.get(modelName, OpenAIChatCompletionModelEnum.class) :
+                    OpenAIModelInfo.get(modelName, OpenAICompletionModelEnum.class);
+            if (modelEnum == null) {
                 throw new IllegalArgumentException();
             }
         } catch (final IllegalArgumentException e) {
