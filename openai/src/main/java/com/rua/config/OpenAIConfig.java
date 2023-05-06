@@ -3,7 +3,6 @@ package com.rua.config;
 import com.rua.property.OpenAIProperties;
 import feign.Logger;
 import feign.Request;
-import feign.RequestInterceptor;
 import feign.Retryer;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
@@ -32,12 +31,6 @@ public class OpenAIConfig {
 
     private final OpenAIProperties openAIProperties;
 
-    // Will be inserted in the header of each request
-    @Bean
-    public RequestInterceptor feignAPIKeyInterceptor() {
-        return request -> request.header("Authorization", "Bearer " + openAIProperties.apiKey());
-    }
-
     // Needed to log the request and response
     @Bean
     Logger.Level feignLoggerLevel() {
@@ -62,7 +55,6 @@ public class OpenAIConfig {
         return WebClient.builder() //
                 .baseUrl(OPENAI_API_BASE_URL) //
                 .clientConnector(new ReactorClientHttpConnector(httpClient)) //
-                .defaultHeader("Authorization", "Bearer " + openAIProperties.apiKey()) //
                 .build();
     }
 

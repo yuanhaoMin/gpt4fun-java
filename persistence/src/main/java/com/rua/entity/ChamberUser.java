@@ -33,6 +33,9 @@ public class ChamberUser {
     @Column(name = "access_bitmap", nullable = false)
     private Integer accessBitmap;
 
+    @Column(name = "api_key")
+    private String apiKey;
+
     @Column(name = "created_time")
     private LocalDateTime createdTime;
 

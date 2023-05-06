@@ -40,6 +40,7 @@ public class ChamberChatCompletionService {
         final var userChatCompletion = chamberChatCompletionLogic.findUserChatCompletionByUsername(username);
         final var userCompletion = chamberCompletionLogic.findUserCompletionByUsername(username);
         final var accessBitmap = userChatCompletion.getUser().getAccessBitmap();
+        final var apiKey = userChatCompletion.getUser().getApiKey();
         final var model = ChamberUserAccessLevelEnum.GPT4.hasAccess(accessBitmap) ?
                 OpenAIChatCompletionModelEnum.GPT4.getModelName() :
                 userCompletion.getModel();
@@ -50,7 +51,7 @@ public class ChamberChatCompletionService {
         final var openAIChatCompletionRequest = createOpenAIChatCompletionRequest(model, messages, userCompletion.getTemperature(), true);
         final List<String> collectedMessages = new ArrayList<>();
         final var startTimestamp = System.currentTimeMillis();
-        return openAIClientService.chatCompletionWithStream(openAIChatCompletionRequest) //
+        return openAIClientService.chatCompletionWithStream(apiKey, openAIChatCompletionRequest) //
                 .map(openAIResponse -> extractAndCollectResponseMessage(collectedMessages, openAIResponse)) //
                 .filter(response -> response.content() != null)  //
                 .doOnComplete(() -> {
@@ -65,6 +66,7 @@ public class ChamberChatCompletionService {
     public String chatCompletionWithoutStream(final ChamberChatCompletionWithoutStreamRequestBo request) {
         final var username = request.username();
         final var userChatCompletion = chamberChatCompletionLogic.findUserChatCompletionByUsername(username);
+        final var apiKey = userChatCompletion.getUser().getApiKey();
         final var messages = chamberChatCompletionLogic.retrieveHistoryMessages(userChatCompletion);
         // Add user message for this time prompt
         messages.add(new OpenAIChatCompletionMessage(CHAT_COMPLETION_ROLE_USER, request.userMessage()));
@@ -73,7 +75,8 @@ public class ChamberChatCompletionService {
         var responseContent = "";
         final var startTimestamp = System.currentTimeMillis();
         try {
-            final var openAIChatCompletionResponse = openAIClientService.chatCompletionWithoutStream(openAIChatCompletionRequest);
+            final var openAIChatCompletionResponse = openAIClientService.chatCompletionWithoutStream(apiKey,
+                    openAIChatCompletionRequest);
             responseContent = openAIChatCompletionResponse.choices().get(0).message().content();
         } catch (FeignException.BadRequest e) {
             resetChatHistory(username);

@@ -31,10 +31,11 @@ public class ChamberCompletionService {
 
     public Flux<ChamberCompletionWithStreamResponseDto> completionWithStream(final String username) {
         final var userCompletion = chamberCompletionLogic.findUserCompletionByUsername(username);
+        final var apiKey = userCompletion.getUser().getApiKey();
         final var openAICompletionRequest = buildOpenAICompletionRequest(userCompletion);
         chamberCompletionLogic.validateUserCompletion(username, userCompletion, false);
         final var startTimestamp = System.currentTimeMillis();
-        return openAIClientService.completionWithStream(openAICompletionRequest) //
+        return openAIClientService.completionWithStream(apiKey, openAICompletionRequest) //
                 .map(this::extractAndCollectResponseMessage) //
                 .filter(response -> response.content() != null) //
                 .doOnComplete(() -> {
