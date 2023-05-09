@@ -5,7 +5,6 @@ import feign.Logger;
 import feign.Request;
 import feign.Retryer;
 import io.netty.channel.ChannelOption;
-import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -65,9 +64,8 @@ public class OpenAIConfig {
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, openAIProperties.connectTimeoutMillis()) //
                 .doOnConnected(conn -> conn
                         // Max time for a client to send a request after establishing a connection.
-                        .addHandlerLast(new WriteTimeoutHandler(openAIProperties.writeTimeoutMillis(), TimeUnit.MILLISECONDS)) //
-                        // Max time for a client to wait for a single response (In SSE) after sending a request.
-                        .addHandlerLast(new ReadTimeoutHandler(openAIProperties.readTimeoutMillis(), TimeUnit.MILLISECONDS)));
+                        .addHandlerLast(new WriteTimeoutHandler(openAIProperties.writeTimeoutMillis(), TimeUnit.MILLISECONDS)));
+        // Do not set read timeout, as it will be set in the request based on the model
     }
 
 }

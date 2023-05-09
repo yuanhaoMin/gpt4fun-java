@@ -37,7 +37,7 @@ public class OpenAIClientService {
         }
         var timeoutMillis = Duration.ofMillis(openAIProperties.readTimeoutMillis());
         if (request.model().equals(OpenAIChatCompletionModelEnum.GPT4.getModelName())) {
-            timeoutMillis = timeoutMillis.plusMillis(2000);
+            timeoutMillis = timeoutMillis.plusMillis(1500);
         }
         return webClient.post() //
                 .uri(OPENAI_API_CHAT_COMPLETION_URL) //
