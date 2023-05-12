@@ -7,12 +7,14 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 
 @Builder
-public record ChamberChatCompletionWithoutStreamRequestDto(@JsonProperty("userMessage") //
+public record ChamberChatCompletionWithoutStreamRequestDto(@JsonProperty("model") //
+                                                           @NotBlank //
+                                                           String model, //
+                                                           @JsonProperty("userMessage") //
                                                            @NotBlank //
                                                            String userMessage, //
                                                            @JsonProperty("temperature") //
-                                                           @DecimalMin(value = "0", message = "Temperature must be at least 0")
-                                                           //
+                                                           @DecimalMin(value = "0", message = "Temperature must be at least 0")//
                                                            @DecimalMax(value = "2", message = "Temperature must be at most 2") //
                                                            double temperature) {
 }

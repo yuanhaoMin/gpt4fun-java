@@ -33,7 +33,7 @@ public class ChamberCompletionService {
         final var userCompletion = chamberCompletionLogic.findUserCompletionByUsername(username);
         final var apiKey = userCompletion.getUser().getApiKey();
         final var openAICompletionRequest = buildOpenAICompletionRequest(userCompletion);
-        chamberCompletionLogic.validateUserCompletion(username, userCompletion, false);
+        chamberCompletionLogic.validateUserCompletion(username, userCompletion.getModel(), userCompletion.getMessage(), false);
         final var startTimestamp = System.currentTimeMillis();
         return openAIClientService.completionWithStream(apiKey, openAICompletionRequest) //
                 .map(this::extractAndCollectResponseMessage) //

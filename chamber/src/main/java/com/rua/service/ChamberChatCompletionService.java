@@ -1,7 +1,5 @@
 package com.rua.service;
 
-import com.rua.constant.ChamberUserAccessLevelEnum;
-import com.rua.constant.OpenAIChatCompletionModelEnum;
 import com.rua.logic.ChamberChatCompletionLogic;
 import com.rua.logic.ChamberCompletionLogic;
 import com.rua.model.request.ChamberChatCompletionWithoutStreamRequestBo;
@@ -39,12 +37,9 @@ public class ChamberChatCompletionService {
     public Flux<ChamberChatCompletionWithStreamResponseDto> chatCompletionWithStream(final String username) {
         final var userChatCompletion = chamberChatCompletionLogic.findUserChatCompletionByUsername(username);
         final var userCompletion = chamberCompletionLogic.findUserCompletionByUsername(username);
-        final var accessBitmap = userChatCompletion.getUser().getAccessBitmap();
         final var apiKey = userChatCompletion.getUser().getApiKey();
-        final var model = ChamberUserAccessLevelEnum.GPT4.hasAccess(accessBitmap) ?
-                OpenAIChatCompletionModelEnum.GPT4.getModelName() :
-                userCompletion.getModel();
-        chamberCompletionLogic.validateUserCompletion(username, userCompletion, true);
+        final var model = userCompletion.getModel();
+        chamberCompletionLogic.validateUserCompletion(username, model, userCompletion.getMessage(), true);
         final var messages = chamberChatCompletionLogic.retrieveHistoryMessages(userChatCompletion);
         // Add user message for this time prompt
         messages.add(new OpenAIChatCompletionMessage(CHAT_COMPLETION_ROLE_USER, userCompletion.getMessage()));
@@ -67,10 +62,12 @@ public class ChamberChatCompletionService {
         final var username = request.username();
         final var userChatCompletion = chamberChatCompletionLogic.findUserChatCompletionByUsername(username);
         final var apiKey = userChatCompletion.getUser().getApiKey();
+        final var model = request.model();
+        chamberCompletionLogic.validateUserCompletion(username, model, request.userMessage(), true);
         final var messages = chamberChatCompletionLogic.retrieveHistoryMessages(userChatCompletion);
         // Add user message for this time prompt
         messages.add(new OpenAIChatCompletionMessage(CHAT_COMPLETION_ROLE_USER, request.userMessage()));
-        final var openAIChatCompletionRequest = createOpenAIChatCompletionRequest(request.model().getModelName(), messages,
+        final var openAIChatCompletionRequest = createOpenAIChatCompletionRequest(model, messages,
                 request.temperature(), false);
         var responseContent = "";
         final var startTimestamp = System.currentTimeMillis();
@@ -82,7 +79,7 @@ public class ChamberChatCompletionService {
             resetChatHistory(username);
             throw e;
         }
-        final var logMessage = createLogMessage("completionWithStream", startTimestamp, username, request.model().getModelName());
+        final var logMessage = createLogMessage("completionWithStream", startTimestamp, username, model);
         log.info(LOG_PREFIX_CHAMBER + logMessage);
         // Add gpt response for next time prompt
         messages.add(new OpenAIChatCompletionMessage(CHAT_COMPLETION_ROLE_ASSISTANT, responseContent));

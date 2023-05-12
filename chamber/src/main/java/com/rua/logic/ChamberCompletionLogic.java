@@ -46,8 +46,7 @@ public class ChamberCompletionLogic {
                 new ChamberUserCompletion();
     }
 
-    public void validateUserCompletion(final String username, final ChamberUserCompletion userCompletion, boolean isChatCompletion) {
-        final var modelName = userCompletion.getModel();
+    public void validateUserCompletion(final String username, final String modelName, final String message, boolean isChatCompletion) {
         if (isNullOrEmpty(modelName)) {
             throw new IllegalArgumentException(String.format(ERROR_CAUSE_EMPTY_MODEL, username));
         }
@@ -60,7 +59,7 @@ public class ChamberCompletionLogic {
         } catch (final IllegalArgumentException e) {
             throw new IllegalArgumentException(String.format(ERROR_CAUSE_INVALID_MODEL, modelName, username));
         }
-        if (isNullOrEmpty(userCompletion.getMessage())) {
+        if (isNullOrEmpty(message)) {
             throw new IllegalArgumentException(String.format(ERROR_CAUSE_EMPTY_MESSAGE, username));
         }
     }
