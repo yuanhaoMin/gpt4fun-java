@@ -21,5 +21,6 @@ public class OpenAIConstants {
 
     // Other
     public static final String END_OF_STREAM = "[DONE]";
+    public static final String BEARER_TOKEN_PREFIX = "Bearer ";
 
 }

@@ -41,6 +41,8 @@ public class ChamberUserLogic {
                 .username(username) //
                 .password(password) //
                 .accessBitmap(ChamberUserAccessLevelEnum.NORMAL.getAccessLevel()) //
+                // TODO: Remove this API key, think of a better way to do this
+                .apiKey("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") //
                 .build();
         final var chamberUserChatCompletion = new ChamberUserChatCompletion();
         chamberUserChatCompletion.setUser(userToSave);

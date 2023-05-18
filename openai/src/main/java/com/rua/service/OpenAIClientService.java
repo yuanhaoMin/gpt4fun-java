@@ -31,16 +31,17 @@ public class OpenAIClientService {
 
     private final WebClient webClient;
 
-    public Flux<String> chatCompletionWithStream(final OpenAIChatCompletionRequestDto request) {
+    public Flux<String> chatCompletionWithStream(final String apiKey, final OpenAIChatCompletionRequestDto request) {
         if (!request.useStream()) {
             throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = true");
         }
         var timeoutMillis = Duration.ofMillis(openAIProperties.readTimeoutMillis());
         if (request.model().equals(OpenAIChatCompletionModelEnum.GPT4.getModelName())) {
-            timeoutMillis = timeoutMillis.plusMillis(2000);
+            timeoutMillis = timeoutMillis.plusMillis(1500);
         }
         return webClient.post() //
                 .uri(OPENAI_API_CHAT_COMPLETION_URL) //
+                .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN_PREFIX + apiKey) //
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE) //
                 .body(BodyInserters.fromValue(request)) //
                 .retrieve() //
@@ -52,19 +53,22 @@ public class OpenAIClientService {
                 .onErrorMap(Throwable::getCause);
     }
 
-    public OpenAIChatCompletionWithoutStreamResponseDto chatCompletionWithoutStream(final OpenAIChatCompletionRequestDto request) {
+    public OpenAIChatCompletionWithoutStreamResponseDto chatCompletionWithoutStream(final String apiKey,
+                                                                                    final OpenAIChatCompletionRequestDto request) {
         if (request.useStream()) {
             throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = false");
         }
-        return openAIFeignClient.chatCompletionWithoutStream(request);
+        final var authorization = BEARER_TOKEN_PREFIX + apiKey;
+        return openAIFeignClient.chatCompletionWithoutStream(authorization, request);
     }
 
-    public Flux<String> completionWithStream(final OpenAICompletionRequestDto request) {
+    public Flux<String> completionWithStream(final String apiKey, final OpenAICompletionRequestDto request) {
         if (!request.useStream()) {
             throw new IllegalArgumentException(LOG_PREFIX_OPENAI + "Request must have stream = true");
         }
         return webClient.post() //
                 .uri(OPENAI_API_COMPLETION_URL) //
+                .header(HttpHeaders.AUTHORIZATION, BEARER_TOKEN_PREFIX + apiKey) //
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE) //
                 .body(BodyInserters.fromValue(request)) //
                 .retrieve() //
@@ -75,10 +79,11 @@ public class OpenAIClientService {
                 .onErrorMap(Throwable::getCause);
     }
 
-    public OpenAITranscriptionResponseDto transcription(final OpenAITranscriptionRequestDto request) {
+    public OpenAITranscriptionResponseDto transcription(final String apiKey, final OpenAITranscriptionRequestDto request) {
         final var modelName = request.model();
         final var audioFile = request.file();
-        return openAIFeignClient.transcription(modelName, audioFile);
+        final var authorization = BEARER_TOKEN_PREFIX + apiKey;
+        return openAIFeignClient.transcription(authorization, modelName, audioFile);
     }
 
 }

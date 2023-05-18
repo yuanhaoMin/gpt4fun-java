@@ -2,6 +2,7 @@ package com.rua.service;
 
 import com.rua.constant.OpenAIModelInfo;
 import com.rua.constant.OpenAITranscriptionModelEnum;
+import com.rua.logic.ChamberUserLogic;
 import com.rua.model.request.ChamberTranscriptionRequestDto;
 import com.rua.model.request.OpenAITranscriptionRequestDto;
 import com.rua.model.response.OpenAITranscriptionResponseDto;
@@ -16,7 +17,11 @@ public class ChamberAudioService {
 
     private final OpenAIClientService openAIClientService;
 
-    public OpenAITranscriptionResponseDto transcription(final ChamberTranscriptionRequestDto request, final String username) {
+    private final ChamberUserLogic chamberUserLogic;
+
+    public OpenAITranscriptionResponseDto transcription(final ChamberTranscriptionRequestDto request, //
+                                                        final String username) {
+        final var apiKey = chamberUserLogic.findByUsername(username).getApiKey();
         try {
             OpenAIModelInfo.get(request.model(), OpenAITranscriptionModelEnum.class);
         } catch (final IllegalArgumentException e) {
@@ -26,7 +31,7 @@ public class ChamberAudioService {
                 .model(request.model()) //
                 .file(request.file()) //
                 .build();
-        return openAIClientService.transcription(openAIRequest);
+        return openAIClientService.transcription(apiKey, openAIRequest);
     }
 
 }

@@ -41,7 +41,7 @@ public class DiscordChatService {
                 .useStream(false) //
                 .temperature(0.4) //
                 .build();
-        final var gptResponse = openAIClientService.chatCompletionWithoutStream(openAIGPT35ChatRequest);
+        final var gptResponse = openAIClientService.chatCompletionWithoutStream("", openAIGPT35ChatRequest);
         // Add gpt response for next time prompt
         messages.add(
                 new OpenAIChatCompletionMessage(CHAT_COMPLETION_ROLE_ASSISTANT,

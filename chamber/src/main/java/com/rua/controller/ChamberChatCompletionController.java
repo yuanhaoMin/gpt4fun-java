@@ -1,6 +1,5 @@
 package com.rua.controller;
 
-import com.rua.constant.OpenAIChatCompletionModelEnum;
 import com.rua.model.request.ChamberChatCompletionWithoutStreamRequestBo;
 import com.rua.model.request.ChamberChatCompletionWithoutStreamRequestDto;
 import com.rua.model.request.ChamberUpdateSystemMessageRequestDto;
@@ -36,7 +35,7 @@ public class ChamberChatCompletionController {
             final Authentication authentication,
             @Valid @RequestBody final ChamberChatCompletionWithoutStreamRequestDto requestDto) {
         final var requestBo = ChamberChatCompletionWithoutStreamRequestBo.builder() //
-                .model(OpenAIChatCompletionModelEnum.GPT35) //
+                .model(requestDto.model()) //
                 .temperature(requestDto.temperature()) //
                 .userMessage(requestDto.userMessage()) //
                 .username(authentication.getName()) //
